@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taiwanderer — Frictionless Taipei Day-Trips & Ground Execution</title>
+  
+  <!-- Fonts: Plus Jakarta Sans & Noto Sans Traditional Chinese -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              // Exact Taiwanese Flag Colors Extracted from Reference
+              blue: '#000095',        // Taiwan Flag Blue (#000095)
+              blueHover: '#000075',
+              red: '#FE0000',         // Exact Taiwan Flag Red from provided image (#FE0000)
+              redHover: '#D50000',
+              // Neutrals
+              dark: '#0B0F19',        // Deep Charcoal for crisp readability
+              light: '#F8FAFC',       // Clean light gray for alternating sections
+              border: '#E2E8F0',      // Soft structural border
+              slate: '#64748B',       // Secondary descriptive text
+              muted: '#94A3B8'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            tc: ['"Noto Sans TC"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      color: #0B0F19;
+      background-color: #FFFFFF;
+    }
+    .card-shadow {
+      box-shadow: 0 4px 16px -2px rgba(0, 0, 149, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      transition: all 0.25s ease-in-out;
+    }
+    .card-shadow:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 28px -4px rgba(0, 0, 149, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.05);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-brand-dark selection:bg-brand-red selection:text-white">
+
+  <!-- ============================================================ -->
+  <!-- 1. TOP ANNOUNCEMENT BANNER -->
+  <!-- ============================================================ -->
+  <aside class="bg-brand-blue text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center space-x-2">
+    <span class="inline-block w-2 h-2 rounded-full bg-brand-red animate-pulse"></span>
+    <span>Taiwanderer Pilot: 3 self-guided, minute-by-minute itineraries for Greater Taipei</span>
+    <span class="hidden md:inline text-blue-200">• Zero app installation required</span>
+  </aside>
+
+  <!-- ============================================================ -->
+  <!-- 2. NAVBAR (GetYourGuide / Klook Standard) -->
+  <!-- ============================================================ -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center space-x-3 group">
+        <div class="w-10 h-10 rounded-xl bg-brand-blue flex items-center justify-center text-white font-extrabold text-xl shadow-md group-hover:bg-brand-red transition">
+          臺
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight text-brand-blue block leading-none">TAIWANDERER</span>
+          <span class="font-tc text-[11px] font-semibold text-brand-slate tracking-widest block mt-0.5">臺灣探索者 • CURATED EXPERIENCES</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center space-x-8 text-sm font-semibold text-brand-slate">
+        <a href="#itineraries" class="hover:text-brand-blue transition">Itineraries</a>
+        <a href="#why-taiwanderer" class="hover:text-brand-blue transition">Why Taiwanderer</a>
+        <a href="#gallery" class="hover:text-brand-blue transition">Visual Gallery</a>
+        <a href="#faq" class="hover:text-brand-blue transition">FAQ</a>
+      </nav>
+
+      <!-- Utility & Currency Switcher -->
+      <div class="flex items-center space-x-4">
+        <!-- Live Currency Switcher -->
+        <div class="hidden sm:flex items-center border border-brand-border rounded-lg p-1 bg-slate-50 text-xs font-semibold text-brand-slate">
+          <button id="curr-ntd" onclick="setCurrency('NTD')" class="px-2 py-1 rounded bg-white text-brand-blue shadow-xs font-bold">NTD $</button>
+          <button id="curr-usd" onclick="setCurrency('USD')" class="px-2 py-1 rounded hover:text-brand-blue">USD $</button>
+          <button id="curr-eur" onclick="setCurrency('EUR')" class="px-2 py-1 rounded hover:text-brand-blue">EUR €</button>
+        </div>
+
+        <a href="#itineraries" class="px-5 py-2.5 rounded-full bg-brand-red hover:bg-brand-redHover text-white font-bold text-sm transition shadow-md shadow-brand-red/20 flex items-center space-x-2">
+          <span>Explore Tours</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- 3. HERO SECTION (Natural Photography & Zero Blue Tint) -->
+  <!-- ============================================================ -->
+  <section class="relative bg-slate-900 text-white overflow-hidden">
+    <!-- Clean HD Hero Image without any blue tint (cosmos_1547423520.webp - Ville) -->
+    <div class="absolute inset-0 z-0">
+      <img 
+        src="Images/Ville/cosmos_1547423520.webp" 
+        alt="Taipei Cityscape and Mountains" 
+        class="w-full h-full object-cover object-center"
+      >
+      <!-- Neutral Dark Gradient: Preserves true photo colors without blue wash -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-32 lg:pt-32 lg:pb-36">
+      <div class="max-w-3xl space-y-6">
+        
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wide uppercase text-white">
+          <span class="w-2 h-2 rounded-full bg-brand-red"></span>
+          <span>Greater Taipei • English-First • Ground Execution</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.1] text-white">
+          Taipei, perfectly planned.<br>
+          <span class="text-white underline decoration-brand-red decoration-4 underline-offset-8">
+            Zero execution friction.
+          </span>
+        </h1>
+
+        <p class="text-lg sm:text-xl text-slate-100 font-normal leading-relaxed max-w-2xl">
+          Say goodbye to multi-app fatigue. Curated half-day and full-day self-guided itineraries featuring minute-by-minute transit timings and full-screen Traditional Chinese flashcards for stress-free local interactions.
+        </p>
+
+        <!-- Clean Search / Filter Bar (GetYourGuide / Klook Standard) -->
+        <div class="pt-6">
+          <div class="bg-white rounded-2xl p-2 sm:p-3 shadow-2xl flex flex-col md:flex-row items-center gap-3 text-brand-dark max-w-3xl border border-white/40">
+            
+            <!-- Field 1: Area -->
+            <div class="flex items-center space-x-3 px-4 py-2 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200">
+              <svg class="w-5 h-5 text-brand-red flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              <div class="text-left w-full">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-brand-slate">Destination</label>
+                <select id="filterZone" onchange="applyFilters()" class="w-full text-sm font-semibold text-brand-blue bg-transparent focus:outline-none cursor-pointer">
+                  <option value="all">All Greater Taipei</option>
+                  <option value="dadaocheng">Dadaocheng & Dihua</option>
+                  <option value="jiufen">Jiufen & Shifen</option>
+                  <option value="huashan">Huashan & Xiangshan</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Field 2: Duration -->
+            <div class="flex items-center space-x-3 px-4 py-2 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-slate-200">
+              <svg class="w-5 h-5 text-brand-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div class="text-left w-full">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-brand-slate">Duration</label>
+                <select id="filterDuration" onchange="applyFilters()" class="w-full text-sm font-semibold text-brand-blue bg-transparent focus:outline-none cursor-pointer">
+                  <option value="all">Any Duration</option>
+                  <option value="half">Half-Day (4h - 5h)</option>
+                  <option value="full">Full-Day (8h)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Search Action Button -->
+            <div class="w-full md:w-auto flex-shrink-0">
+              <a href="#itineraries" class="w-full md:w-auto px-8 py-3.5 rounded-xl bg-brand-red hover:bg-brand-redHover text-white font-bold text-sm transition flex items-center justify-center space-x-2 shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span>Find Itinerary</span>
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-200 font-medium">
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>Traditional Chinese "Show-to-Local" Cards</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>Verified MRT & Bus Connections</span>
+          </div>
+          <div class="flex items-center space-x-2">
+            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            <span>Instant Smartphone Access</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 4. CATEGORY PILLS FILTER BAR (Klook Pattern) -->
+  <!-- ============================================================ -->
+  <section class="border-b border-brand-border bg-slate-50 sticky top-20 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex items-center space-x-2 overflow-x-auto no-scrollbar">
+        <button onclick="filterCategory('all', this)" class="category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-brand-blue text-white shadow-xs">
+          All Programs (3)
+        </button>
+        <button onclick="filterCategory('heritage', this)" class="category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-white text-brand-slate hover:text-brand-blue border border-brand-border">
+          🏮 Heritage & Temples (Dadaocheng)
+        </button>
+        <button onclick="filterCategory('food', this)" class="category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-white text-brand-slate hover:text-brand-blue border border-brand-border">
+          🍜 Night Market Safari (Ningxia)
+        </button>
+        <button onclick="filterCategory('nature', this)" class="category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-white text-brand-slate hover:text-brand-blue border border-brand-border">
+          ⛰️ Misty Mountain Gold Trails (Jiufen)
+        </button>
+        <button onclick="filterCategory('creative', this)" class="category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-white text-brand-slate hover:text-brand-blue border border-brand-border">
+          🎨 Creative Hubs & 101 Sunset
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 5. CATALOGUE : PRODUCT CARDS GRID (GetYourGuide / Klook Standard) -->
+  <!-- ============================================================ -->
+  <section id="itineraries" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+      <div>
+        <span class="text-brand-red font-bold text-xs uppercase tracking-widest block mb-1">Proven Field Plans</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-blue tracking-tight">Signature Taipei Itineraries</h2>
+      </div>
+      <p class="text-brand-slate text-sm max-w-md mt-2 md:mt-0">
+        Every plan includes minute-by-minute schedules, estimated budgets in NTD, and one-tap flashcards ready to show on site.
+      </p>
+    </div>
+
+    <!-- Responsive 3-Column Grid -->
+    <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <!-- ==================== CARD 1 ==================== -->
+      <article class="program-card bg-white rounded-2xl border border-brand-border overflow-hidden card-shadow flex flex-col" data-zone="dadaocheng" data-duration="half" data-categories="heritage food">
+        <!-- Image Card (cosmos_1439949128.webp - Monuments) -->
+        <div class="relative aspect-[16/10] overflow-hidden bg-slate-100">
+          <img 
+            src="Images/Monuments/cosmos_1439949128.webp" 
+            alt="Dadaocheng Historic Temple" 
+            class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          >
+          <!-- Badge Bestseller -->
+          <div class="absolute top-3 left-3 flex items-center space-x-1 px-3 py-1 rounded-full bg-brand-red text-white text-[11px] font-extrabold uppercase tracking-wider shadow-sm">
+            <span>★ BESTSELLER</span>
+          </div>
+          <!-- Badge Duration -->
+          <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-brand-blue/90 text-white text-xs font-semibold">
+            ⏱ 4.5 hrs • Afternoon to Evening
+          </div>
+          <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-brand-blue flex items-center justify-center transition shadow-sm" title="Save to favorites">
+            ♥
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-brand-slate">
+              <span>Dadaocheng & Ningxia</span>
+              <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">MRT Beimen Direct</span>
+            </div>
+            
+            <h3 class="text-xl font-extrabold text-brand-blue hover:text-brand-red transition cursor-pointer">
+              Heritage & Street Food Safari
+            </h3>
+            
+            <p class="text-sm text-brand-slate leading-relaxed">
+              Century-old herbal dispensaries, Baroque architecture on Dihua Street, followed by a curated tasting walk at Ningxia Night Market without queue traps.
+            </p>
+          </div>
+
+          <!-- Feature Chips -->
+          <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">8 Chinese Flashcards</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Street Food Budget Included</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Offline Map Sync</span>
+          </div>
+
+          <!-- Pricing & Footer -->
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <div class="flex items-center space-x-1 text-xs">
+                <span class="text-brand-blue font-bold">★ 4.96</span>
+                <span class="text-brand-slate">(184 reviews)</span>
+              </div>
+              <div class="mt-1">
+                <span class="text-xs text-brand-slate block">Estimated Cost / person</span>
+                <span class="text-lg font-extrabold text-brand-blue price-display" data-base-ntd="1200">1,200 NTD</span>
+              </div>
+            </div>
+
+            <button onclick="openProgramModal('heritage')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
+              View Itinerary
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- ==================== CARD 2 ==================== -->
+      <article class="program-card bg-white rounded-2xl border border-brand-border overflow-hidden card-shadow flex flex-col" data-zone="jiufen" data-duration="full" data-categories="nature heritage">
+        <!-- Image Card (cosmos_1647464022.webp - Nature) -->
+        <div class="relative aspect-[16/10] overflow-hidden bg-slate-100">
+          <img 
+            src="Images/Nature/cosmos_1647464022.webp" 
+            alt="Jiufen and Shifen Mountain Landscapes" 
+            class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          >
+          <!-- Badge Scenic -->
+          <div class="absolute top-3 left-3 flex items-center space-x-1 px-3 py-1 rounded-full bg-brand-blue text-white text-[11px] font-extrabold uppercase tracking-wider shadow-sm">
+            <span>🌿 ICONIC MOUNTAIN ESCAPE</span>
+          </div>
+          <!-- Badge Duration -->
+          <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-brand-blue/90 text-white text-xs font-semibold">
+            ⏱ 8.0 hrs • Full Day
+          </div>
+          <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-brand-blue flex items-center justify-center transition shadow-sm" title="Save to favorites">
+            ♥
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-brand-slate">
+              <span>Jiufen, Shifen & Ruifang</span>
+              <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded">TRA Train + Bus 965</span>
+            </div>
+            
+            <h3 class="text-xl font-extrabold text-brand-blue hover:text-brand-red transition cursor-pointer">
+              Misty Hills & Old Gold Trails
+            </h3>
+            
+            <p class="text-sm text-brand-slate leading-relaxed">
+              Navigate Jiufen’s misty hillside alleys without bus line bottlenecks. Reserve authentic tea overlooking the ocean, plus Shifen waterfall logistics.
+            </p>
+          </div>
+
+          <!-- Feature Chips -->
+          <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Exact Bus Timetables</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Rain Contingency Route</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Verified Teahouse Spots</span>
+          </div>
+
+          <!-- Pricing & Footer -->
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <div class="flex items-center space-x-1 text-xs">
+                <span class="text-brand-blue font-bold">★ 4.92</span>
+                <span class="text-brand-slate">(219 reviews)</span>
+              </div>
+              <div class="mt-1">
+                <span class="text-xs text-brand-slate block">Estimated Cost / person</span>
+                <span class="text-lg font-extrabold text-brand-blue price-display" data-base-ntd="1850">1,850 NTD</span>
+              </div>
+            </div>
+
+            <button onclick="openProgramModal('jiufen')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
+              View Itinerary
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <!-- ==================== CARD 3 ==================== -->
+      <article class="program-card bg-white rounded-2xl border border-brand-border overflow-hidden card-shadow flex flex-col" data-zone="huashan" data-duration="half" data-categories="creative nature">
+        <!-- Image Card (cosmos_1536119613.webp - Ville) -->
+        <div class="relative aspect-[16/10] overflow-hidden bg-slate-100">
+          <img 
+            src="Images/Ville/cosmos_1536119613.webp" 
+            alt="Huashan 1914 & Elephant Mountain Trail" 
+            class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          >
+          <!-- Badge Sunset -->
+          <div class="absolute top-3 left-3 flex items-center space-x-1 px-3 py-1 rounded-full bg-brand-red text-white text-[11px] font-extrabold uppercase tracking-wider shadow-sm">
+            <span>🌇 BEST SUNSET OVER 101</span>
+          </div>
+          <!-- Badge Duration -->
+          <div class="absolute bottom-3 left-3 px-2.5 py-1 rounded-md bg-brand-blue/90 text-white text-xs font-semibold">
+            ⏱ 5.0 hrs • Afternoon to Sunset
+          </div>
+          <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-brand-blue flex items-center justify-center transition shadow-sm" title="Save to favorites">
+            ♥
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs font-bold text-brand-slate">
+              <span>Huashan & Xiangshan</span>
+              <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded">Red MRT Line Direct</span>
+            </div>
+            
+            <h3 class="text-xl font-extrabold text-brand-blue hover:text-brand-red transition cursor-pointer">
+              Creative Hubs & Sunset Heights
+            </h3>
+            
+            <p class="text-sm text-brand-slate leading-relaxed">
+              Repurposed industrial warehouses of Huashan, artisan Taiwanese pour-over coffee, and a timed ascent of Xiangshan for the golden hour skyline.
+            </p>
+          </div>
+
+          <!-- Feature Chips -->
+          <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Golden Hour Window</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">101 Photo Vantage Points</span>
+            <span class="text-[11px] font-medium bg-slate-100 text-brand-dark px-2.5 py-1 rounded-md">Speakeasy Bar Finish</span>
+          </div>
+
+          <!-- Pricing & Footer -->
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <div class="flex items-center space-x-1 text-xs">
+                <span class="text-brand-blue font-bold">★ 4.98</span>
+                <span class="text-brand-slate">(97 reviews)</span>
+              </div>
+              <div class="mt-1">
+                <span class="text-xs text-brand-slate block">Estimated Cost / person</span>
+                <span class="text-lg font-extrabold text-brand-blue price-display" data-base-ntd="1100">1,100 NTD</span>
+              </div>
+            </div>
+
+            <button onclick="openProgramModal('huashan')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
+              View Itinerary
+            </button>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 6. VALUE PROPOSITION SECTION (Trust & Authority) -->
+  <!-- ============================================================ -->
+  <section id="why-taiwanderer" class="bg-slate-50 border-y border-brand-border py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+        <span class="text-brand-red font-bold text-xs uppercase tracking-widest">The Taiwanderer Standard</span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-blue">
+          Why our itineraries outperform blogs and Google Maps
+        </h2>
+        <p class="text-brand-slate text-base">
+          In Taiwan, the challenge is never finding what to see. It’s executing smoothly on the ground without language barriers or wasted transit hours.
+        </p>
+      </div>
+
+      <!-- 3 Value Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Pillar 1 -->
+        <div class="bg-white p-8 rounded-2xl border border-brand-border shadow-xs space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-red-50 text-brand-red flex items-center justify-center font-extrabold text-xl">
+            文
+          </div>
+          <h3 class="text-xl font-bold text-brand-blue">Mandarin Flashcards on Demand</h3>
+          <p class="text-sm text-brand-slate leading-relaxed">
+            Show your screen directly to taxi drivers and night market vendors. Full-screen Traditional Chinese (繁體中文) with turnkey intentions (*"No coriander please"*, *"What is your best seller?"*).
+          </p>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="bg-white p-8 rounded-2xl border border-brand-border shadow-xs space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center font-extrabold text-xl">
+            捷
+          </div>
+          <h3 class="text-xl font-bold text-brand-blue">Precision MRT & Bus Routing</h3>
+          <p class="text-sm text-brand-slate leading-relaxed">
+            Never wait 45 minutes for a transfer at Ruifang or take the wrong metro exit. Real walking buffers, exact station exits, and vetted bus schedules are baked in.
+          </p>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="bg-white p-8 rounded-2xl border border-brand-border shadow-xs space-y-4">
+          <div class="w-12 h-12 rounded-xl bg-slate-100 text-brand-dark flex items-center justify-center font-extrabold text-xl">
+            食
+          </div>
+          <h3 class="text-xl font-bold text-brand-blue">Zero Tourist Traps</h3>
+          <p class="text-sm text-brand-slate leading-relaxed">
+            Every food stall and teahouse is personally vetted and cross-checked by local bilingual residents in Taipei. Fair prices and exceptional quality guaranteed.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 7. MOSAIC INSPIRATION GALLERY -->
+  <!-- ============================================================ -->
+  <section id="gallery" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="text-center max-w-2xl mx-auto space-y-3 mb-12">
+      <span class="text-brand-red font-bold text-xs uppercase tracking-widest">Visual Immersion</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-blue">Moments of Formosa</h2>
+      <p class="text-brand-slate text-sm">Real atmospheres captured across our 3 pilot routes in Greater Taipei.</p>
+    </div>
+
+    <!-- 4 Images from the project -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm group">
+        <img src="Images/Monuments/cosmos_23102478.webp" alt="Taipei Historic Architecture" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm group">
+        <img src="Images/Nature/cosmos_599371518.webp" alt="Lush Mountain Alleys" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm group">
+        <img src="Images/Ville/cosmos_1218632484.webp" alt="Taipei Neon Alleys" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+      <div class="rounded-2xl overflow-hidden aspect-[4/5] bg-slate-100 shadow-sm group">
+        <img src="Images/Monuments/cosmos_308911218.webp" alt="Historic Temple Details" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 8. FAQ ACCORDION -->
+  <!-- ============================================================ -->
+  <section id="faq" class="bg-slate-50 border-t border-brand-border py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="text-center space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-blue">Frequently Asked Questions</h2>
+        <p class="text-brand-slate text-sm">Everything you need to know about using our self-guided plans in Taiwan.</p>
+      </div>
+
+      <div class="space-y-4">
+        
+        <details class="group bg-white p-6 rounded-2xl border border-brand-border shadow-xs cursor-pointer">
+          <summary class="font-bold text-base text-brand-blue flex items-center justify-between list-none">
+            <span>Do I need to download an app from the App Store?</span>
+            <span class="text-brand-red transition group-open:rotate-180">▼</span>
+          </summary>
+          <p class="text-sm text-brand-slate mt-3 leading-relaxed">
+            No. Taiwanderer is built as a lightweight, mobile-first Progressive Web App (PWA). It runs directly in your standard mobile browser (Safari, Chrome) with zero installation required.
+          </p>
+        </details>
+
+        <details class="group bg-white p-6 rounded-2xl border border-brand-border shadow-xs cursor-pointer">
+          <summary class="font-bold text-base text-brand-blue flex items-center justify-between list-none">
+            <span>How do the Traditional Chinese flashcards work?</span>
+            <span class="text-brand-red transition group-open:rotate-180">▼</span>
+          </summary>
+          <p class="text-sm text-brand-slate mt-3 leading-relaxed">
+            At every stop (street food stall, taxi transfer, teahouse), a prominent "Show to Local" button opens a high-contrast card with the official Traditional Chinese characters (繁體中文), phonetic pinyin, and clear request phrases.
+          </p>
+        </details>
+
+        <details class="group bg-white p-6 rounded-2xl border border-brand-border shadow-xs cursor-pointer">
+          <summary class="font-bold text-base text-brand-blue flex items-center justify-between list-none">
+            <span>What is included in the estimated budget?</span>
+            <span class="text-brand-red transition group-open:rotate-180">▼</span>
+          </summary>
+          <p class="text-sm text-brand-slate mt-3 leading-relaxed">
+            All budgets are calculated per person in New Taiwan Dollars (NTD). They cover local transport (MRT, EasyCard fares, buses), recommended signature dishes, and admission tickets.
+          </p>
+        </details>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 9. FOOTER -->
+  <!-- ============================================================ -->
+  <footer class="bg-brand-blue text-white border-t border-brand-border/20 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-brand-red flex items-center justify-center text-white font-extrabold text-sm">
+          臺
+        </div>
+        <div>
+          <span class="font-extrabold tracking-wider text-base">TAIWANDERER</span>
+          <span class="text-xs text-blue-200 block font-tc">臺灣探索者 • Self-Guided Digital Itineraries</span>
+        </div>
+      </div>
+
+      <div class="text-xs text-blue-200 text-center md:text-right space-y-1">
+        <p>© 2026 Taiwanderer Inc. All rights reserved.</p>
+        <p class="text-[11px] text-blue-300">Curated specifically for independent international travelers in Greater Taipei.</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ============================================================ -->
+  <!-- 10. INTERACTIVE PROGRAM MODAL PREVIEW -->
+  <!-- ============================================================ -->
+  <div id="itineraryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative">
+      
+      <button onclick="closeProgramModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-brand-blue flex items-center justify-center font-bold">
+        ✕
+      </button>
+
+      <div class="space-y-1">
+        <span id="modalCategory" class="text-xs font-bold text-brand-red uppercase tracking-wider">Itinerary Preview</span>
+        <h3 id="modalTitle" class="text-2xl font-extrabold text-brand-blue">Itinerary Title</h3>
+      </div>
+
+      <!-- Live Mandarin Flashcard Sample -->
+      <div class="bg-slate-50 border-2 border-brand-blue/20 rounded-2xl p-5 space-y-3">
+        <span class="text-[10px] font-bold text-brand-slate uppercase tracking-wider block">Integrated "Show-to-Local" Flashcard Sample</span>
+        <div class="bg-white p-5 rounded-xl border border-brand-border shadow-xs text-center space-y-1">
+          <p class="font-tc text-3xl font-black text-brand-blue">迪化街一段</p>
+          <p class="text-xs text-brand-slate font-mono">Dadaocheng Dihua St, Sec 1</p>
+          <p class="text-sm font-bold text-brand-red pt-2">« 請帶我到這個地址 (Please take me to this address) »</p>
+        </div>
+      </div>
+
+      <!-- Minute-by-Minute Timeline -->
+      <div class="space-y-3">
+        <h4 class="text-sm font-bold text-brand-blue uppercase tracking-wider">Chronological Timeline</h4>
+        <div class="space-y-3 border-l-2 border-brand-red/40 pl-4 text-xs">
+          <div>
+            <span class="font-bold text-brand-red">02:30 PM • Arrive at MRT Beimen (Exit 3)</span>
+            <p class="text-brand-slate mt-0.5">5-minute walk to Dihua Street. Explore historic tea and Chinese medicine shops.</p>
+          </div>
+          <div>
+            <span class="font-bold text-brand-red">04:00 PM • Traditional Oolong Tea Tasting</span>
+            <p class="text-brand-slate mt-0.5">Relax at Wang's Tea with roastery demonstration.</p>
+          </div>
+          <div>
+            <span class="font-bold text-brand-red">06:00 PM • Ningxia Night Market Safari</span>
+            <p class="text-brand-slate mt-0.5">Direct guide to 4 top street food stands with pre-filled Traditional Chinese order cards.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-brand-slate block">Estimated Cost</span>
+          <span class="text-xl font-extrabold text-brand-blue">1,200 NTD (~$38 USD)</span>
+        </div>
+        <button onclick="closeProgramModal()" class="px-6 py-3 rounded-xl bg-brand-red hover:bg-brand-redHover text-white font-bold text-xs uppercase tracking-wider transition">
+          Close Preview
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 11. FILTERING & CURRENCY CONVERSION SCRIPT -->
+  <!-- ============================================================ -->
+  <script>
+    // Currency conversion rates
+    const rates = {
+      NTD: { symbol: 'NTD', rate: 1, suffix: ' NTD' },
+      USD: { symbol: '$', rate: 0.031, prefix: '$ ' },
+      EUR: { symbol: '€', rate: 0.029, prefix: '€ ' }
+    };
+    let currentCurrency = 'NTD';
+
+    function setCurrency(curr) {
+      currentCurrency = curr;
+      document.querySelectorAll('#curr-ntd, #curr-usd, #curr-eur').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-brand-blue', 'shadow-xs', 'font-bold');
+        btn.classList.add('hover:text-brand-blue');
+      });
+      const activeBtn = document.getElementById(`curr-${curr.toLowerCase()}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-brand-blue', 'shadow-xs', 'font-bold');
+      }
+
+      // Update all card prices
+      document.querySelectorAll('.price-display').forEach(el => {
+        const baseNTD = parseFloat(el.getAttribute('data-base-ntd'));
+        if (curr === 'NTD') {
+          el.textContent = `${baseNTD.toLocaleString('en-US')} NTD`;
+        } else {
+          const converted = Math.round(baseNTD * rates[curr].rate);
+          el.textContent = `${rates[curr].prefix}${converted}`;
+        }
+      });
+    }
+
+    // Category pills filter
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.category-pill').forEach(p => {
+        p.className = 'category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-white text-brand-slate hover:text-brand-blue border border-brand-border';
+      });
+      btn.className = 'category-pill px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap bg-brand-blue text-white shadow-xs';
+
+      const cards = document.querySelectorAll('.program-card');
+      cards.forEach(card => {
+        if (cat === 'all') {
+          card.style.display = 'flex';
+        } else {
+          const cardCats = card.getAttribute('data-categories') || '';
+          if (cardCats.includes(cat)) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Combined search filter from Hero
+    function applyFilters() {
+      const zone = document.getElementById('filterZone').value;
+      const duration = document.getElementById('filterDuration').value;
+
+      document.querySelectorAll('.program-card').forEach(card => {
+        const cardZone = card.getAttribute('data-zone');
+        const cardDur = card.getAttribute('data-duration');
+
+        const matchZone = (zone === 'all' || zone === cardZone);
+        const matchDur = (duration === 'all' || duration === cardDur);
+
+        if (matchZone && matchDur) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Interactive modal preview
+    function openProgramModal(type) {
+      const modal = document.getElementById('itineraryModal');
+      const title = document.getElementById('modalTitle');
+      const cat = document.getElementById('modalCategory');
+
+      if (type === 'heritage') {
+        title.textContent = "Heritage & Street Food Safari (Dadaocheng)";
+        cat.textContent = "Half-Day • Afternoon to Evening";
+      } else if (type === 'jiufen') {
+        title.textContent = "Misty Hills & Old Gold Trails (Jiufen & Shifen)";
+        cat.textContent = "Full-Day • 09:00 AM Departure";
+      } else {
+        title.textContent = "Creative Hubs & Sunset Heights (Huashan & Xiangshan)";
+        cat.textContent = "Half-Day • Golden Hour Window";
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeProgramModal() {
+      document.getElementById('itineraryModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

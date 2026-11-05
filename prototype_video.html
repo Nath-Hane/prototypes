@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full overflow-hidden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taiwanderer — Section Snapping & Rotation au Coup de Scroll</title>
+  
+  <!-- Polices -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#0B1B2B',
+              ocean: '#102A43',
+              crimson: '#E63946',
+              amber: '#FFB703',
+              light: '#F8FAFC',
+              slate: '#64748B',
+              border: '#E2E8F0'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            tc: ['"Noto Sans TC"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- GSAP via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Empêche le défilement navigateur natif pour contrôler le snap */
+      background-color: #070e17;
+      color: #F8FAFC;
+    }
+    
+    /* Arrière-plan 100% FIXE plein écran */
+    #backgroundMediaContainer {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    #lanternCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* Calque d'ambiance et de lisibilité pour le texte */
+    .cinematic-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at center, rgba(7, 14, 23, 0.20) 25%, rgba(7, 14, 23, 0.85) 85%),
+        linear-gradient(to bottom, rgba(7, 14, 23, 0.75) 0%, transparent 20%, transparent 80%, rgba(7, 14, 23, 0.95) 100%);
+    }
+
+    /* Wrapper des diapositives de sections */
+    #slidesWrapper {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      width: 100%;
+      will-change: transform;
+    }
+
+    .slide-section {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      position: relative;
+      box-sizing: border-box;
+    }
+    
+    .glass-card {
+      background: rgba(11, 27, 43, 0.75);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Indicateurs latéraux (Dots) */
+    .nav-dot {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-dot.active {
+      background-color: #E63946;
+      height: 28px;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased selection:bg-brand-crimson selection:text-white">
+
+  <!-- ARRIÈRE-PLAN FIXE PLEIN ÉCRAN -->
+  <div id="backgroundMediaContainer">
+    <canvas id="lanternCanvas"></canvas>
+  </div>
+
+  <!-- Voile cinématique assurant le contraste du texte -->
+  <div class="cinematic-overlay"></div>
+
+  <!-- Header / Navigation -->
+  <header class="fixed top-0 left-0 w-full z-50 px-8 py-5 flex items-center justify-between border-b border-white/10 bg-brand-navy/85 backdrop-blur-md">
+    <div class="flex items-center space-x-3 cursor-pointer" onclick="goToSection(0)">
+      <span class="w-3 h-3 rounded-full bg-brand-crimson animate-pulse"></span>
+      <span class="font-extrabold text-xl tracking-wider text-white">TAIWANDERER <span class="font-tc font-normal text-sm text-brand-slate ml-2">臺灣探索者</span></span>
+    </div>
+    <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+      <button onclick="goToSection(0)" class="hover:text-white transition">Accueil</button>
+      <button onclick="goToSection(1)" class="hover:text-white transition">La Friction</button>
+      <button onclick="goToSection(2)" class="hover:text-white transition">Programmes</button>
+      <button onclick="goToSection(3)" class="hover:text-white transition">Accès</button>
+    </nav>
+    <button onclick="goToSection(2)" class="px-5 py-2.5 rounded-full bg-brand-crimson hover:bg-red-600 text-white font-semibold text-sm transition shadow-lg shadow-brand-crimson/25">
+      Explorer les Itinéraires
+    </button>
+  </header>
+
+  <!-- Indicateurs de section latéraux (Dots de droite) -->
+  <div class="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col space-y-3">
+    <button onclick="goToSection(0)" id="dot-0" class="nav-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white active" title="Accueil"></button>
+    <button onclick="goToSection(1)" id="dot-1" class="nav-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white" title="La Friction"></button>
+    <button onclick="goToSection(2)" id="dot-2" class="nav-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white" title="Programmes"></button>
+    <button onclick="goToSection(3)" id="dot-3" class="nav-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white" title="Accès"></button>
+  </div>
+
+  <!-- Panneau de diagnostic en bas à gauche -->
+  <div class="fixed bottom-6 left-6 z-50 glass-card px-4 py-2.5 rounded-full text-xs flex items-center space-x-3 text-slate-300 border border-white/10">
+    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="statusLabel" class="font-medium text-white">Section 1/4 • Accueil</span>
+    <span class="text-slate-500">|</span>
+    <span id="frameLabel" class="font-mono text-brand-amber text-[11px]">Frame 1/121 (0°)</span>
+    <span class="text-slate-500">|</span>
+    <span class="text-[10px] text-slate-400 hidden sm:inline">1 coup de molette = 1 section</span>
+  </div>
+
+  <!-- CONTENEUR DES 4 SLIDES PLEIN ÉCRAN -->
+  <main id="slidesWrapper">
+    
+    <!-- SECTION 0 : HERO (Frame 0 - 0°) -->
+    <section class="slide-section justify-center px-6">
+      <div class="text-center max-w-3xl mx-auto space-y-6 pt-12">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-brand-crimson/40 bg-brand-crimson/15 text-brand-crimson text-xs uppercase tracking-widest font-bold">
+          <span>Taipei Guided Journeys</span>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-tight drop-shadow-lg">
+          L'exécution de voyage, <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-brand-amber to-yellow-200">sans la friction.</span>
+        </h1>
+        <p class="text-lg md:text-xl text-slate-200 max-w-xl mx-auto font-light leading-relaxed drop-shadow">
+          Itinéraires thématiques clé en main à Taipei. Donnez un coup de molette : chaque section déclenche la rotation de la lanterne.
+        </p>
+        <div class="pt-6">
+          <button onclick="goToSection(1)" class="text-xs uppercase tracking-widest text-slate-300 font-semibold inline-flex items-center gap-2 px-5 py-2.5 rounded-full glass-card hover:bg-white/10 transition cursor-pointer">
+            ↓ Coup de scroll pour commencer
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 1 : LA FRICTION (Frame 40 - 120°) -->
+    <section class="slide-section px-8 md:px-20">
+      <div class="max-w-xl space-y-8">
+        <div class="space-y-3">
+          <span class="text-brand-crimson font-bold text-xs uppercase tracking-wider">01 • Diagnostic Terrain</span>
+          <h2 class="text-4xl md:text-5xl font-extrabold text-white leading-tight">
+            Pourquoi 80% des voyageurs perdent 3h par jour.
+          </h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed text-base">
+          Entre Google Maps imprécis dans les marchés couverts, la barrière du mandarin traditionnel pour commander et les files d'attente imprévues, le voyage indépendant génère une fatigue mentale permanente.
+        </p>
+
+        <div class="space-y-4">
+          <div class="glass-card p-6 rounded-2xl flex items-start space-x-4 border-l-4 border-l-brand-crimson">
+            <div class="w-10 h-10 rounded-xl bg-brand-crimson/20 text-brand-crimson flex items-center justify-center font-bold text-lg flex-shrink-0">
+              01
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-base">Multi-source fatigue</h3>
+              <p class="text-xs text-slate-300 mt-1">Jongler constamment entre 5 applications (Maps, MRT, blogs, traducteur, notes de frais).</p>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl flex items-start space-x-4 border-l-4 border-l-brand-amber">
+            <div class="w-10 h-10 rounded-xl bg-brand-amber/20 text-brand-amber flex items-center justify-center font-bold text-lg flex-shrink-0">
+              02
+            </div>
+            <div>
+              <h3 class="font-bold text-white text-base">Barrière linguistique de terrain</h3>
+              <p class="text-xs text-slate-300 mt-1">Impossibilité de communiquer vos préférences alimentaires ou votre destination exacte aux chauffeurs.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 : LES PROGRAMMES MVP (Frame 80 - 240°) -->
+    <section class="slide-section px-8 md:px-20 justify-end">
+      <div class="max-w-xl space-y-6">
+        <div class="space-y-3">
+          <span class="text-brand-amber font-bold text-xs uppercase tracking-wider">02 • Programmes Validés</span>
+          <h2 class="text-4xl md:text-5xl font-extrabold text-white leading-tight">
+            3 Parcours Clé en Main.
+          </h2>
+          <p class="text-slate-300 text-sm">Chaque programme intègre la timeline minute-par-minute et les flashcards grand format en sinogrammes traditionnels.</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Carte 1 -->
+          <div class="glass-card p-6 rounded-2xl border-l-4 border-l-brand-crimson hover:border-red-400 transition cursor-pointer group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-brand-crimson uppercase tracking-wider">01 • Demi-Journée</span>
+              <span class="text-xs text-slate-400">Dadaocheng & Ningxia</span>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-red-300 transition mt-1">Heritage & Street Food Safari</h3>
+            <p class="text-xs text-slate-300 mt-2">Herboristeries centenaires, ruelles baroques de Dihua Street et dégustation guidée au Ningxia Night Market.</p>
+          </div>
+
+          <!-- Carte 2 -->
+          <div class="glass-card p-6 rounded-2xl border-l-4 border-l-brand-amber hover:border-amber-300 transition cursor-pointer group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-brand-amber uppercase tracking-wider">02 • Journée Complète</span>
+              <span class="text-xs text-slate-400">Jiufen & Shifen</span>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-yellow-200 transition mt-1">Misty Hills & Old Gold Trails</h3>
+            <p class="text-xs text-slate-300 mt-2">L'ancien village minier, salon de thé traditionnel dans la brume et cascades avec gestion millimétrée des bus.</p>
+          </div>
+
+          <!-- Carte 3 -->
+          <div class="glass-card p-6 rounded-2xl border-l-4 border-l-blue-400 hover:border-blue-300 transition cursor-pointer group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">03 • Après-Midi & Soir</span>
+              <span class="text-xs text-slate-400">Huashan & Xiangshan</span>
+            </div>
+            <h3 class="text-xl font-bold text-white group-hover:text-blue-200 transition mt-1">Creative Hubs & Sunset Heights</h3>
+            <p class="text-xs text-slate-300 mt-2">Friches industrielles réhabilitées, café de spécialité et randonnée au coucher du soleil sur Taipei 101.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 : CALL TO ACTION (Frame 120 - 360°) -->
+    <section class="slide-section justify-center px-6">
+      <div class="max-w-2xl mx-auto space-y-6 glass-card p-10 rounded-3xl border border-white/20 text-center">
+        <span class="text-brand-crimson font-bold text-sm tracking-widest uppercase">03 • Immersion Terrain</span>
+        <h2 class="text-5xl md:text-6xl font-extrabold text-white">
+          Ne visitez pas au hasard. <br>
+          <span class="text-brand-amber">Explorez en confiance.</span>
+        </h2>
+        <p class="text-slate-300 max-w-lg mx-auto text-base">
+          Accédez aux 3 guides interactifs directement sur votre smartphone, sans installation requise.
+        </p>
+        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <button class="w-full sm:w-auto px-8 py-4 rounded-full bg-brand-crimson hover:bg-red-600 text-white font-bold text-base transition shadow-xl shadow-brand-crimson/30">
+            Explorer les 3 Itinéraires
+          </button>
+          <a href="prototype_3d.html" class="w-full sm:w-auto px-8 py-4 rounded-full border border-white/20 hover:bg-white/10 text-white font-semibold text-base transition">
+            Comparer avec la 3D
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script Snapping & Transition Synchronisée des Frames -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. Initialisation Canvas & Séquence d'Images
+    // -------------------------------------------------------------
+    const canvas = document.getElementById("lanternCanvas");
+    const ctx = canvas.getContext("2d");
+    const slidesWrapper = document.getElementById("slidesWrapper");
+    const statusLabel = document.getElementById("statusLabel");
+    const frameLabel = document.getElementById("frameLabel");
+
+    const totalFrames = 121;
+    const images = [];
+    const sequenceState = { frame: 0 };
+
+    // Les 4 paliers exacts de rotation par section (0° -> 120° -> 240° -> 360°)
+    const targetFrames = [0, 40, 80, 120];
+    const sectionNames = ["Accueil", "La Friction", "Programmes", "Immersion"];
+    
+    let currentIndex = 0;
+    let isAnimating = false;
+
+    // Préchargement des 121 frames
+    for (let i = 1; i <= totalFrames; i++) {
+      const img = new Image();
+      const numStr = String(i).padStart(3, '0');
+      img.src = `frames/frame_${numStr}.jpg`;
+      images.push(img);
+    }
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      renderCanvasFrame(Math.round(sequenceState.frame));
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    images[0].onload = () => {
+      resizeCanvas();
+    };
+
+    function renderCanvasFrame(index) {
+      const safeIndex = Math.min(totalFrames - 1, Math.max(0, index));
+      if (!images[safeIndex] || !images[safeIndex].complete) return;
+      const img = images[safeIndex];
+
+      const cw = canvas.width;
+      const ch = canvas.height;
+      const iw = img.naturalWidth || 1280;
+      const ih = img.naturalHeight || 720;
+
+      const scale = Math.max(cw / iw, ch / ih);
+      const nw = iw * scale;
+      const nh = ih * scale;
+      const cx = (cw - nw) / 2;
+      const cy = (ch - nh) / 2;
+
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, cx, cy, nw, nh);
+    }
+
+    // -------------------------------------------------------------
+    // 2. Logique de Navigation par Section (1 Coup = 1 Section)
+    // -------------------------------------------------------------
+    function goToSection(index) {
+      if (index < 0 || index >= targetFrames.length || isAnimating) return;
+      isAnimating = true;
+      currentIndex = index;
+
+      const targetFrame = targetFrames[index];
+      const targetY = -index * window.innerHeight;
+
+      // Mise à jour visuelle des dots latéraux
+      for (let i = 0; i < targetFrames.length; i++) {
+        const dot = document.getElementById(`dot-${i}`);
+        if (dot) {
+          if (i === index) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        }
+      }
+
+      // 1. Transition fluide de la section (0.9 seconde avec amorti soigné)
+      gsap.to(slidesWrapper, {
+        y: targetY,
+        duration: 0.9,
+        ease: "power2.inOut",
+        onComplete: () => {
+          isAnimating = false;
+        }
+      });
+
+      // 2. Transition fluide des frames de la lanterne sur la même durée
+      gsap.to(sequenceState, {
+        frame: targetFrame,
+        duration: 0.9,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          const currentFrame = Math.round(sequenceState.frame);
+          renderCanvasFrame(currentFrame);
+
+          if (frameLabel) {
+            const angle = Math.round((currentFrame / (totalFrames - 1)) * 360);
+            frameLabel.textContent = `Frame ${currentFrame + 1}/${totalFrames} (${angle}°)`;
+          }
+        }
+      });
+
+      if (statusLabel) {
+        statusLabel.textContent = `Section ${index + 1}/4 • ${sectionNames[index]}`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. Détection du coup de scroll (Molette & Trackpad)
+    // -------------------------------------------------------------
+    let wheelAccumulator = 0;
+    let wheelTimeout;
+
+    window.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      if (isAnimating) return;
+
+      wheelAccumulator += e.deltaY;
+
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        wheelAccumulator = 0;
+      }, 200);
+
+      // Déclenche le passage dès qu'un seuil délibéré est franchi
+      if (Math.abs(wheelAccumulator) >= 30) {
+        if (wheelAccumulator > 0) {
+          goToSection(currentIndex + 1);
+        } else {
+          goToSection(currentIndex - 1);
+        }
+        wheelAccumulator = 0;
+      }
+    }, { passive: false });
+
+    // -------------------------------------------------------------
+    // 4. Détection du Swipe Touch (Mobile / Tactile)
+    // -------------------------------------------------------------
+    let touchStartY = 0;
+
+    window.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener("touchend", (e) => {
+      if (isAnimating) return;
+      const touchEndY = e.changedTouches[0].clientY;
+      const deltaY = touchStartY - touchEndY;
+
+      if (Math.abs(deltaY) > 40) {
+        if (deltaY > 0) {
+          goToSection(currentIndex + 1);
+        } else {
+          goToSection(currentIndex - 1);
+        }
+      }
+    }, { passive: true });
+
+    // -------------------------------------------------------------
+    // 5. Navigation Clavier (Flèches & PageUp/Down)
+    // -------------------------------------------------------------
+    window.addEventListener("keydown", (e) => {
+      if (["ArrowDown", "PageDown", " "].includes(e.key)) {
+        e.preventDefault();
+        goToSection(currentIndex + 1);
+      } else if (["ArrowUp", "PageUp"].includes(e.key)) {
+        e.preventDefault();
+        goToSection(currentIndex - 1);
+      }
+    });
+
+    // Initialisation
+    window.addEventListener("DOMContentLoaded", () => {
+      resizeCanvas();
+      goToSection(0);
+    });
+  </script>
+</body>
+</html>
