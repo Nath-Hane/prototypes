@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Taiwanderer — Live Field Guide</title>
+
+  <!-- Fonts: Plus Jakarta Sans & Noto Sans Traditional Chinese -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              blue: '#000095',
+              blueHover: '#000075',
+              red: '#FE0000',
+              redHover: '#D50000',
+              dark: '#0B0F19',
+              light: '#F8FAFC',
+              border: '#E2E8F0',
+              slate: '#64748B',
+              muted: '#94A3B8'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            tc: ['"Noto Sans TC"', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      color: #0B0F19;
+      background-color: #F8FAFC;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Custom Leaflet Pin Styles */
+    .tw-pin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 13px;
+      color: #FFFFFF;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 4px 12px rgba(11, 15, 25, 0.3);
+      transition: transform 0.15s ease;
+    }
+    .tw-pin-active {
+      background-color: #FE0000;
+      transform: scale(1.18);
+      box-shadow: 0 0 0 6px rgba(254, 0, 0, 0.22), 0 4px 14px rgba(11, 15, 25, 0.35);
+    }
+    .tw-pin-upcoming { background-color: #000095; }
+    .tw-pin-done { background-color: #10B981; }
+    .tw-pin-planb {
+      background-color: #D97706;
+      box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.25), 0 4px 12px rgba(11, 15, 25, 0.3);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-brand-dark selection:bg-brand-red selection:text-white">
+
+  <!-- ============================================================ -->
+  <!-- 1. COMPACT STICKY STREET HEADER -->
+  <!-- ============================================================ -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border shadow-xs">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+
+      <!-- Row 1: Back, Title, Currency -->
+      <div class="h-14 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <a href="index.html" class="w-9 h-9 rounded-xl border border-brand-border bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-brand-blue shrink-0 transition" title="Back to Catalog">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+          </a>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="inline-block w-2 h-2 rounded-full bg-brand-red shrink-0"></span>
+              <span id="headerZone" class="text-[10px] font-bold uppercase tracking-wider text-brand-slate truncate">Datong District</span>
+            </div>
+            <h1 id="headerTitle" class="text-sm sm:text-base font-extrabold text-brand-blue truncate leading-tight">
+              Heritage & Street Food Safari
+            </h1>
+          </div>
+        </div>
+
+        <!-- Currency Switcher -->
+        <div class="flex items-center border border-brand-border rounded-lg p-0.5 bg-slate-50 text-[11px] font-bold text-brand-slate shrink-0">
+          <button onclick="setCurrency('NTD')" id="curr-NTD" class="px-2 py-1 rounded bg-white text-brand-blue shadow-xs">NTD</button>
+          <button onclick="setCurrency('USD')" id="curr-USD" class="px-2 py-1 rounded hover:text-brand-blue">USD</button>
+          <button onclick="setCurrency('EUR')" id="curr-EUR" class="px-2 py-1 rounded hover:text-brand-blue">EUR</button>
+        </div>
+      </div>
+
+      <!-- Row 2: Live Field Controls (Start Time Picker + Plan B Toggle) -->
+      <div class="py-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+        <!-- Start Time Picker -->
+        <div class="flex items-center gap-1.5">
+          <label for="startTimeInput" class="text-[11px] font-bold text-brand-slate uppercase tracking-wide hidden sm:inline">Start:</label>
+          <div class="flex items-center bg-slate-100 rounded-lg px-2 py-1 border border-slate-200">
+            <svg class="w-3.5 h-3.5 text-brand-blue mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <input id="startTimeInput" type="time" value="14:30" onchange="onStartTimeChange(this.value)" class="bg-transparent text-xs font-extrabold text-brand-blue focus:outline-none cursor-pointer">
+          </div>
+          <button onclick="setStartNow()" class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-brand-dark transition">
+            Now
+          </button>
+          <button onclick="resetIdealStart()" id="idealBtn" class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[11px] font-bold text-brand-blue transition hidden sm:inline-block">
+            14:30 Ideal
+          </button>
+        </div>
+
+        <!-- Rainy / Plan B Toggle -->
+        <button id="planBToggle" onclick="togglePlanB()" role="switch" aria-checked="false" class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-brand-border bg-white hover:bg-slate-50 transition text-xs font-bold">
+          <span id="planBIcon" class="text-sm leading-none">☀️</span>
+          <span id="planBLabel" class="text-brand-dark">Normal Route</span>
+          <span id="planBPill" class="w-8 h-[18px] rounded-full bg-slate-200 p-0.5 flex items-center transition-colors">
+            <span id="planBKnob" class="w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform"></span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Row 3: Progress + Conflict Status Strip -->
+      <div class="pb-2 flex items-center gap-3">
+        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-brand-red rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <span id="progressText" class="text-[11px] font-bold text-brand-slate shrink-0">0 / 6 stops</span>
+        <span id="conflictPill" class="hidden text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0"></span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- 2. MAIN WORKSPACE (Mobile Tabs / Desktop Split-Screen) -->
+  <!-- ============================================================ -->
+  <main class="max-w-7xl mx-auto lg:px-8 lg:py-6 pb-24 lg:pb-10">
+    <div class="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+
+      <!-- LEFT COLUMN (Mobile full width / Desktop 7 cols) -->
+      <div class="lg:col-span-7">
+
+        <!-- Desktop Top Tabs (Hidden on Mobile, since Mobile uses Bottom Tab Bar) -->
+        <div class="hidden lg:flex items-center gap-2 mb-5 bg-white p-1.5 rounded-2xl border border-brand-border shadow-xs">
+          <button onclick="switchTab('route')" data-tab-btn="route" class="tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider transition">
+            Route Timeline
+          </button>
+          <button onclick="switchTab('flashcards')" data-tab-btn="flashcards" class="tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider transition">
+            Mandarin Flashcards
+          </button>
+          <button onclick="switchTab('budget')" data-tab-btn="budget" class="tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider transition">
+            Prep & Budget
+          </button>
+        </div>
+
+        <!-- ==================== TAB 1: ROUTE TIMELINE ==================== -->
+        <section id="panel-route" class="px-3 sm:px-6 lg:px-0 pt-4 lg:pt-0 space-y-4">
+
+          <!-- Mobile Non-Scroll-Jacking Map Preview Card -->
+          <button onclick="switchTab('map')" class="lg:hidden w-full bg-white rounded-2xl border border-brand-border p-3.5 flex items-center justify-between shadow-xs active:scale-[0.99] transition text-left">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-blue-50 text-brand-blue flex items-center justify-center shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+              </div>
+              <div>
+                <span class="text-xs font-extrabold text-brand-blue block">Interactive Route Map</span>
+                <span id="mobileMapMeta" class="text-[11px] text-brand-slate font-medium">6 stops • 3.2 km flat walk • Tap to open full map</span>
+              </div>
+            </div>
+            <span class="px-3 py-1.5 rounded-lg bg-brand-blue text-white text-[11px] font-bold shrink-0">Open Map</span>
+          </button>
+
+          <!-- Plan B Active Banner -->
+          <div id="planBBanner" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-start gap-3">
+            <span class="text-lg leading-none mt-0.5">☔</span>
+            <div class="text-xs space-y-0.5">
+              <p class="font-extrabold text-amber-900">Rainy Day / Plan B Active</p>
+              <p class="text-amber-800 leading-relaxed">Outdoor pier & open-air night market lanes are swapped for sheltered Qilou arcades, indoor heritage rooms, and seated legacy diners. Transit & budget updated automatically.</p>
+            </div>
+          </div>
+
+          <!-- Dynamic Time / Day Conflict Alert Banner -->
+          <div id="scheduleAlertBanner" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3.5 flex items-start gap-3">
+            <span class="text-lg leading-none mt-0.5">⚠️</span>
+            <div class="text-xs space-y-1 flex-1">
+              <p class="font-extrabold text-red-900">Schedule Conflict Detected for <span id="alertStartTime"></span> Start</p>
+              <ul id="scheduleAlertList" class="text-red-800 list-disc pl-4 space-y-0.5"></ul>
+              <button onclick="resetIdealStart()" class="mt-1 inline-flex items-center font-extrabold text-brand-red underline">
+                Reset to ideal 14:30 start →
+              </button>
+            </div>
+          </div>
+
+          <!-- Timeline Container -->
+          <div id="timelineContainer" class="space-y-2"></div>
+
+          <!-- Footer Reset & Field Note -->
+          <div class="pt-4 pb-6 flex items-center justify-between text-xs text-brand-slate border-t border-brand-border">
+            <span>Last field check: <strong id="lastVerifiedText" class="text-brand-dark"></strong></span>
+            <button onclick="resetProgress()" class="font-bold text-brand-red hover:underline">Reset Progress</button>
+          </div>
+        </section>
+
+        <!-- ==================== TAB 2: MOBILE FULLSCREEN MAP PANEL ==================== -->
+        <!-- On desktop, this panel is hidden because the sticky right panel handles the map -->
+        <section id="panel-map" class="hidden lg:hidden relative">
+          <div id="mobileMapWrapper" class="relative w-full" style="height: calc(100vh - 188px); min-height: 420px;">
+            <!-- The single Leaflet map instance moves here on mobile -->
+          </div>
+        </section>
+
+        <!-- ==================== TAB 3: MANDARIN FLASHCARDS ==================== -->
+        <section id="panel-flashcards" class="hidden px-3 sm:px-6 lg:px-0 pt-4 lg:pt-0 space-y-4">
+          <div class="bg-white rounded-2xl border border-brand-border p-4 space-y-3">
+            <div>
+              <h2 class="text-base font-extrabold text-brand-blue">Show-to-Local Mandarin Kit</h2>
+              <p class="text-xs text-brand-slate mt-0.5">Tap any card to open high-contrast full-screen mode to show taxi drivers or street food vendors.</p>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="flex flex-wrap gap-1.5" id="flashcardFilters">
+              <button onclick="setFlashcardFilter('all')" data-fc-filter="all" class="fc-filter-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-brand-blue text-white">All Cards</button>
+              <button onclick="setFlashcardFilter('place')" data-fc-filter="place" class="fc-filter-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-slate-100 text-brand-slate hover:bg-slate-200">Taxi & Places</button>
+              <button onclick="setFlashcardFilter('food')" data-fc-filter="food" class="fc-filter-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-slate-100 text-brand-slate hover:bg-slate-200">Food Orders</button>
+              <button onclick="setFlashcardFilter('phrase')" data-fc-filter="phrase" class="fc-filter-btn px-3 py-1.5 rounded-full text-xs font-bold transition bg-slate-100 text-brand-slate hover:bg-slate-200">Dietary & Phrases</button>
+            </div>
+          </div>
+
+          <div id="flashcardsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </section>
+
+        <!-- ==================== TAB 4: PREP & BUDGET ==================== -->
+        <section id="panel-budget" class="hidden px-3 sm:px-6 lg:px-0 pt-4 lg:pt-0 space-y-5">
+
+          <!-- Budget Summary Card -->
+          <div class="bg-white rounded-2xl border border-brand-border p-5 space-y-4 shadow-xs">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand-red">Per Person Estimate</span>
+                <h2 class="text-lg font-extrabold text-brand-blue">Live Field Budget</h2>
+              </div>
+              <div class="text-right">
+                <span id="budgetTotalDisplay" class="text-2xl font-extrabold text-brand-blue block">805 NTD</span>
+                <span id="budgetModeNote" class="text-[11px] text-brand-slate font-medium">Normal route</span>
+              </div>
+            </div>
+
+            <!-- Cash vs EasyCard Split Bar -->
+            <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200 space-y-2">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-amber-800">💵 Cash Needed (ATM): <span id="budgetCashDisplay"></span></span>
+                <span class="text-brand-blue">💳 EasyCard / Card: <span id="budgetCardDisplay"></span></span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden flex">
+                <div id="cashRatioBar" class="h-full bg-amber-500 transition-all duration-300" style="width: 70%"></div>
+                <div id="cardRatioBar" class="h-full bg-brand-blue transition-all duration-300" style="width: 30%"></div>
+              </div>
+              <p class="text-[11px] text-brand-slate">Withdraw small NTD bills before arriving at Dihua St / Ningxia Night Market.</p>
+            </div>
+
+            <!-- Step-by-step Cost Breakdown -->
+            <div class="space-y-2">
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-brand-slate">Breakdown by Stop</h3>
+              <div id="budgetBreakdownList" class="divide-y divide-slate-100 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- Pre-Departure Checklist -->
+          <div class="bg-white rounded-2xl border border-brand-border p-5 space-y-3 shadow-xs">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base font-extrabold text-brand-blue">Before You Go Checklist</h2>
+              <span id="prepCountBadge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-brand-slate">0 / 4</span>
+            </div>
+            <div id="prepChecklistContainer" class="space-y-2.5"></div>
+          </div>
+
+          <!-- Curator & Verification Card -->
+          <div class="bg-white rounded-2xl border border-brand-border p-5 flex items-center justify-between gap-4 shadow-xs">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-full bg-brand-blue text-white font-extrabold flex items-center justify-center text-sm shrink-0">
+                CL
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span id="curatorName" class="text-sm font-extrabold text-brand-dark">Claire Lin</span>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Field-Verified</span>
+                </div>
+                <p id="curatorRole" class="text-xs text-brand-slate">Taipei Local Food Researcher • Verified Nov 2026</p>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN: DESKTOP STICKY MAP WIDGET (5 cols, hidden below lg) -->
+      <aside class="hidden lg:block lg:col-span-5 sticky top-36">
+        <div class="bg-white rounded-3xl border border-brand-border overflow-hidden shadow-md">
+          <div class="px-4 py-3 border-b border-brand-border flex items-center justify-between bg-slate-50">
+            <div>
+              <span class="text-xs font-extrabold text-brand-blue block">Live Interactive Route Map</span>
+              <span id="desktopMapSubtitle" class="text-[11px] text-brand-slate">Click any pin for exact entrance GPS & step jump</span>
+            </div>
+            <button onclick="fitMapBounds()" class="px-2.5 py-1 rounded-lg bg-white border border-brand-border hover:bg-slate-100 text-[11px] font-bold text-brand-blue transition">
+              Fit All
+            </button>
+          </div>
+          <div id="desktopMapWrapper" class="relative w-full" style="height: calc(100vh - 235px); min-height: 460px;">
+            <!-- Single Leaflet map container mounts here on desktop -->
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- 3. SINGLE REUSABLE LEAFLET MAP ROOT + OVERLAYS -->
+  <!-- ============================================================ -->
+  <div id="leafletMapRoot" class="w-full h-full relative z-10">
+    <div id="mapCanvas" class="w-full h-full bg-slate-200"></div>
+
+    <!-- Floating Map Controls (Locate Me & Fit All) -->
+    <div class="absolute top-3 right-3 z-[400] flex flex-col gap-2">
+      <button onclick="locateUser()" title="Locate Me" class="w-10 h-10 rounded-xl bg-white/95 backdrop-blur border border-brand-border shadow-md flex items-center justify-center text-brand-blue hover:bg-slate-50 active:scale-95 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06z"/></svg>
+      </button>
+      <button onclick="fitMapBounds()" title="Fit Entire Route" class="lg:hidden w-10 h-10 rounded-xl bg-white/95 backdrop-blur border border-brand-border shadow-md flex items-center justify-center text-brand-blue hover:bg-slate-50 active:scale-95 transition text-xs font-extrabold">
+        All
+      </button>
+    </div>
+
+    <!-- Selected Pin Bottom Sheet Drawer -->
+    <div id="mapPinSheet" class="hidden absolute bottom-3 left-3 right-3 z-[400] bg-white rounded-2xl border border-brand-border shadow-xl p-4 space-y-3">
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span id="sheetStopBadge" class="px-2 py-0.5 rounded-full bg-brand-blue text-white text-[10px] font-extrabold">Stop 1</span>
+            <span id="sheetTimeRange" class="text-[11px] font-bold text-brand-red">14:30 – 15:15</span>
+          </div>
+          <h4 id="sheetTitle" class="text-sm font-extrabold text-brand-dark mt-1 truncate">Stop Name</h4>
+          <p id="sheetTc" class="font-tc text-xs text-brand-slate truncate"></p>
+        </div>
+        <button onclick="closePinSheet()" class="w-7 h-7 rounded-full bg-slate-100 text-brand-slate flex items-center justify-center text-xs font-bold shrink-0">✕</button>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <a id="sheetGoogleMaps" href="#" target="_blank" rel="noopener" class="py-2 px-2 rounded-xl bg-brand-blue text-white text-[11px] font-bold text-center hover:bg-brand-blueHover transition">
+          Google Maps
+        </a>
+        <a id="sheetAppleMaps" href="#" target="_blank" rel="noopener" class="py-2 px-2 rounded-xl bg-slate-100 text-brand-dark text-[11px] font-bold text-center hover:bg-slate-200 transition">
+          Apple Maps
+        </a>
+        <button id="sheetJumpBtn" onclick="jumpToSheetStop()" class="py-2 px-2 rounded-xl bg-red-50 text-brand-red text-[11px] font-bold text-center hover:bg-red-100 transition">
+          View Step
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 4. MOBILE FIXED BOTTOM TAB BAR -->
+  <!-- ============================================================ -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-brand-border px-2 py-1.5 grid grid-cols-4 gap-1 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]">
+    <button onclick="switchTab('route')" data-mobile-tab="route" class="mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-brand-blue bg-blue-50/80">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+      <span class="text-[10px] font-extrabold mt-0.5">Route</span>
+    </button>
+    <button onclick="switchTab('map')" data-mobile-tab="map" class="mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-brand-slate">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      <span class="text-[10px] font-bold mt-0.5">Map</span>
+    </button>
+    <button onclick="switchTab('flashcards')" data-mobile-tab="flashcards" class="mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-brand-slate">
+      <span class="font-tc text-base font-black leading-5">文</span>
+      <span class="text-[10px] font-bold mt-0.5">Flashcards</span>
+    </button>
+    <button onclick="switchTab('budget')" data-mobile-tab="budget" class="mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-brand-slate">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span class="text-[10px] font-bold mt-0.5">Budget</span>
+    </button>
+  </nav>
+
+  <!-- ============================================================ -->
+  <!-- 5. FULL-SCREEN "SHOW-TO-LOCAL" FLASHCARD MODAL -->
+  <!-- ============================================================ -->
+  <div id="flashcardModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative space-y-5 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <span id="fcModalTag" class="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-red-50 text-brand-red">Show Screen To Local</span>
+        <button onclick="closeFlashcardModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-brand-dark font-extrabold flex items-center justify-center">✕</button>
+      </div>
+
+      <!-- High-Contrast Display Box -->
+      <div class="bg-slate-50 border-2 border-brand-blue/15 rounded-2xl p-6 text-center space-y-3">
+        <p id="fcModalTitle" class="text-xs font-bold uppercase tracking-wider text-brand-slate"></p>
+        <p id="fcModalTc" class="font-tc text-3xl sm:text-5xl font-black text-brand-dark leading-snug break-words select-all"></p>
+        <div id="fcModalModifiersActive" class="flex flex-wrap justify-center gap-2 pt-1"></div>
+        <p id="fcModalPinyin" class="text-sm font-mono text-brand-blue font-semibold pt-2"></p>
+        <p id="fcModalEnglish" class="text-xs text-brand-slate"></p>
+      </div>
+
+      <!-- Price & Audio Row -->
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div id="fcModalPriceWrap" class="hidden px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-extrabold text-amber-900">
+          Expected price: <span id="fcModalPrice"></span>
+        </div>
+        <button onclick="speakFlashcard()" id="fcSpeakBtn" class="ml-auto px-4 py-2 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white text-xs font-bold flex items-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+          <span>Play Audio (zh-TW)</span>
+        </button>
+      </div>
+
+      <!-- Live Order Modifiers (shown for food items) -->
+      <div id="fcModifiersSection" class="hidden border-t border-slate-100 pt-4 space-y-2">
+        <span class="text-[11px] font-extrabold uppercase tracking-wider text-brand-slate block">Tap to add dietary request on screen:</span>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="toggleModalModifier('不要香菜', 'No Coriander')" data-mod="不要香菜" class="mod-pill px-3 py-1.5 rounded-xl border border-brand-border text-xs font-bold text-brand-dark hover:border-brand-blue transition">+ No Coriander (不要香菜)</button>
+          <button onclick="toggleModalModifier('不要辣', 'Not Spicy')" data-mod="不要辣" class="mod-pill px-3 py-1.5 rounded-xl border border-brand-border text-xs font-bold text-brand-dark hover:border-brand-blue transition">+ Not Spicy (不要辣)</button>
+          <button onclick="toggleModalModifier('我要外帶', 'Takeaway')" data-mod="我要外帶" class="mod-pill px-3 py-1.5 rounded-xl border border-brand-border text-xs font-bold text-brand-dark hover:border-brand-blue transition">+ Takeaway (外帶)</button>
+        </div>
+      </div>
+
+      <p id="fcModalContext" class="text-xs text-brand-slate bg-slate-50 rounded-xl p-3 border border-slate-100"></p>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- 6. REPORT ISSUE MODAL (Anti-Obsolescence Feedback Loop) -->
+  <!-- ============================================================ -->
+  <div id="reportModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-brand-blue">Report Field Change</h3>
+        <button onclick="closeReportModal()" class="w-8 h-8 rounded-full bg-slate-100 text-brand-slate font-bold">✕</button>
+      </div>
+      <p id="reportStopName" class="text-xs font-bold text-brand-dark"></p>
+      <div class="space-y-2 text-xs">
+        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-brand-border cursor-pointer hover:bg-slate-50">
+          <input type="radio" name="reportReason" value="closed" checked class="accent-brand-red">
+          <span class="font-semibold">Stall / shop was unexpectedly closed</span>
+        </label>
+        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-brand-border cursor-pointer hover:bg-slate-50">
+          <input type="radio" name="reportReason" value="hours" class="accent-brand-red">
+          <span class="font-semibold">Opening hours or price changed</span>
+        </label>
+        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-brand-border cursor-pointer hover:bg-slate-50">
+          <input type="radio" name="reportReason" value="exit" class="accent-brand-red">
+          <span class="font-semibold">Transit / MRT exit instruction unclear</span>
+        </label>
+      </div>
+      <button onclick="submitReport()" class="w-full py-2.5 rounded-xl bg-brand-red hover:bg-brand-redHover text-white font-bold text-xs uppercase tracking-wider transition">
+        Send Field Update
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-full bg-brand-dark text-white text-xs font-bold shadow-xl"></div>
+
+  <!-- Scripts: Leaflet + Program Data + App Logic -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="data/programs.js"></script>
+  <script>
+    // ============================================================
+    // STATE & PERSISTENCE
+    // ============================================================
+    const CURRENCY_RATES = { NTD: 1, USD: 0.031, EUR: 0.029 };
+    const CURRENCY_SYMBOLS = { NTD: 'NTD', USD: '$', EUR: '€' };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const programId = urlParams.get('id') || 'heritage';
+    const program = (window.TAIWANDERER_PROGRAMS && window.TAIWANDERER_PROGRAMS[programId])
+      || window.TAIWANDERER_PROGRAMS.heritage;
+
+    const STORAGE_KEY = `taiwanderer_guide_${program.id}_v1`;
+    let state = loadState();
+
+    function loadState() {
+      const defaults = {
+        activeTab: 'route',
+        startTime: program.recommendedStart || '14:30',
+        planB: false,
+        currency: 'NTD',
+        completedStops: [],
+        checkedPrep: [],
+        flashcardFilter: 'all'
+      };
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return { ...defaults, ...saved };
+      } catch {
+        return defaults;
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch { /* ignore storage quota errors */ }
+    }
+
+    // ============================================================
+    // TIME & SCHEDULE ENGINE
+    // ============================================================
+    function parseMinutes(hhmm) {
+      if (!hhmm) return 0;
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function formatMinutes(totalMins) {
+      const normalized = ((totalMins % 1440) + 1440) % 1440;
+      const h = Math.floor(normalized / 60);
+      const m = normalized % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    /**
+     * Merges base stop with planB overrides when Rainy Day / Plan B is active.
+     */
+    function getEffectiveStop(stop) {
+      if (!state.planB || !stop.planB) {
+        return { ...stop, isSwapped: false };
+      }
+      return {
+        ...stop,
+        ...stop.planB,
+        transitFromPrev: stop.planB.transitFromPrev || stop.transitFromPrev,
+        costs: stop.planB.costs || stop.costs,
+        isSwapped: true
+      };
+    }
+
+    /**
+     * Computes arrival/departure times and real opening-hour conflicts for every stop.
+     */
+    function computeSchedule() {
+      let cursorMin = parseMinutes(state.startTime);
+      const todayDay = new Date().getDay(); // 0 = Sunday
+      const conflicts = [];
+
+      const computed = program.stops.map((rawStop, idx) => {
+        const stop = getEffectiveStop(rawStop);
+        const transitMins = stop.transitFromPrev ? stop.transitFromPrev.durationMin : 0;
+        const arrivalMin = idx === 0 ? cursorMin : cursorMin + transitMins;
+        const departureMin = arrivalMin + stop.durationMin;
+        cursorMin = departureMin;
+
+        const openMin = parseMinutes(stop.opensAt);
+        const closeMin = stop.closesAt === '24:00' ? 1440 : parseMinutes(stop.closesAt);
+
+        let alertMsg = null;
+        if (arrivalMin < openMin) {
+          alertMsg = `Opens at ${stop.opensAt} (you arrive at ${formatMinutes(arrivalMin)} — ${openMin - arrivalMin} min early).`;
+          conflicts.push(`<strong>Stop ${stop.number} (${stop.name}):</strong> ${alertMsg}`);
+        } else if (arrivalMin >= closeMin) {
+          alertMsg = `Closed after ${stop.closesAt} (arrival ${formatMinutes(arrivalMin)}).`;
+          conflicts.push(`<strong>Stop ${stop.number} (${stop.name}):</strong> ${alertMsg}`);
+        } else if (departureMin > closeMin) {
+          alertMsg = `Closes at ${stop.closesAt} before you finish (~${formatMinutes(departureMin)}).`;
+          conflicts.push(`<strong>Stop ${stop.number} (${stop.name}):</strong> ${alertMsg}`);
+        }
+
+        const isClosedToday = Array.isArray(stop.closedDays) && stop.closedDays.includes(todayDay);
+
+        return {
+          ...stop,
+          arrivalTime: formatMinutes(arrivalMin),
+          departureTime: formatMinutes(departureMin),
+          alertMsg,
+          isClosedToday
+        };
+      });
+
+      return { stops: computed, conflicts };
+    }
+
+    // ============================================================
+    // CURRENCY HELPERS
+    // ============================================================
+    function formatMoney(ntdAmount) {
+      if (ntdAmount === 0) return state.currency === 'NTD' ? '0 NTD' : `${CURRENCY_SYMBOLS[state.currency]}0`;
+      const converted = ntdAmount * CURRENCY_RATES[state.currency];
+      if (state.currency === 'NTD') {
+        return `${Math.round(converted).toLocaleString()} NTD`;
+      }
+      return `${CURRENCY_SYMBOLS[state.currency]}${converted.toFixed(2)}`;
+    }
+
+    function setCurrency(curr) {
+      state.currency = curr;
+      saveState();
+      renderAll();
+    }
+
+    // ============================================================
+    // LEAFLET MAP ENGINE (Single Instance Mounted Dynamically)
+    // ============================================================
+    let mapInstance = null;
+    let markersLayer = null;
+    let routeLayer = null;
+    let userLocationMarker = null;
+    let currentSheetStopId = null;
+
+    function mountMapToViewport() {
+      const mapRoot = document.getElementById('leafletMapRoot');
+      const isDesktop = window.innerWidth >= 1024;
+      const target = isDesktop
+        ? document.getElementById('desktopMapWrapper')
+        : document.getElementById('mobileMapWrapper');
+
+      if (target && mapRoot.parentElement !== target) {
+        target.appendChild(mapRoot);
+      }
+
+      if (!mapInstance) {
+        mapInstance = L.map('mapCanvas', { zoomControl: false }).setView([25.0555, 121.5125], 15);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, TomTom',
+          maxZoom: 19
+        }).addTo(mapInstance);
+        L.control.zoom({ position: 'topleft' }).addTo(mapInstance);
+        markersLayer = L.layerGroup().addTo(mapInstance);
+        routeLayer = L.layerGroup().addTo(mapInstance);
+      }
+
+      setTimeout(() => {
+        mapInstance.invalidateSize();
+      }, 80);
+    }
+
+    function renderMap(computedStops) {
+      if (!mapInstance) return;
+      markersLayer.clearLayers();
+      routeLayer.clearLayers();
+
+      const nextActiveStop = computedStops.find(s => !state.completedStops.includes(s.id));
+      const latLngs = [];
+
+      computedStops.forEach((stop, index) => {
+        const pos = [stop.lat, stop.lng];
+        latLngs.push(pos);
+
+        const isDone = state.completedStops.includes(stop.id);
+        const isActive = nextActiveStop && nextActiveStop.id === stop.id;
+        let pinClass = 'tw-pin-upcoming';
+        let zIndexOffset = 500 - index;
+        if (isDone) {
+          pinClass = 'tw-pin-done';
+          zIndexOffset = 100;
+        } else if (isActive) {
+          pinClass = 'tw-pin-active';
+          zIndexOffset = 1000;
+        } else if (stop.isSwapped) {
+          pinClass = 'tw-pin-planb';
+        }
+
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="tw-pin ${pinClass}">${isDone ? '✓' : stop.number}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const marker = L.marker(pos, { icon, zIndexOffset }).addTo(markersLayer);
+        marker.on('click', () => openPinSheet(stop));
+
+        // Draw segment polyline from previous stop
+        if (index > 0) {
+          const prev = computedStops[index - 1];
+          const isTransit = stop.transitFromPrev && stop.transitFromPrev.mode !== 'Walk';
+          L.polyline([[prev.lat, prev.lng], pos], {
+            color: stop.isSwapped ? '#D97706' : '#000095',
+            weight: 3.5,
+            opacity: 0.75,
+            dashArray: isTransit ? '8, 8' : null
+          }).addTo(routeLayer);
+        }
+      });
+
+      if (!mapInstance._hasInitialFit && latLngs.length > 0) {
+        mapInstance.fitBounds(latLngs, { padding: [48, 48] });
+        mapInstance._hasInitialFit = true;
+      }
+    }
+
+    function fitMapBounds() {
+      if (!mapInstance) return;
+      const { stops } = computeSchedule();
+      const coords = stops.map(s => [s.lat, s.lng]);
+      if (coords.length > 0) {
+        mapInstance.fitBounds(coords, { padding: [48, 48] });
+      }
+    }
+
+    function focusStopOnMap(stopId) {
+      const { stops } = computeSchedule();
+      const stop = stops.find(s => s.id === stopId);
+      if (!stop) return;
+
+      if (window.innerWidth < 1024 && state.activeTab !== 'map') {
+        switchTab('map');
+      }
+      setTimeout(() => {
+        if (mapInstance) {
+          mapInstance.setView([stop.lat, stop.lng], 17, { animate: true });
+          openPinSheet(stop);
+        }
+      }, 120);
+    }
+
+    function openPinSheet(stop) {
+      currentSheetStopId = stop.id;
+      document.getElementById('sheetStopBadge').textContent = `Stop ${stop.number}${stop.isSwapped ? ' • Plan B' : ''}`;
+      document.getElementById('sheetTimeRange').textContent = `${stop.arrivalTime} – ${stop.departureTime}`;
+      document.getElementById('sheetTitle').textContent = stop.name;
+      document.getElementById('sheetTc').textContent = stop.tcName;
+      document.getElementById('sheetGoogleMaps').href = `https://www.google.com/maps/search/?api=1&query=${stop.entryCoords}`;
+      document.getElementById('sheetAppleMaps').href = `https://maps.apple.com/?q=${stop.entryCoords}`;
+      document.getElementById('mapPinSheet').classList.remove('hidden');
+    }
+
+    function closePinSheet() {
+      document.getElementById('mapPinSheet').classList.add('hidden');
+    }
+
+    function jumpToSheetStop() {
+      if (!currentSheetStopId) return;
+      closePinSheet();
+      if (window.innerWidth < 1024) {
+        switchTab('route');
+      }
+      setTimeout(() => {
+        const el = document.getElementById(`card-${currentSheetStopId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 80);
+    }
+
+    function locateUser() {
+      if (!navigator.geolocation) {
+        showToast('Geolocation not supported by this browser.');
+        return;
+      }
+      showToast('Locating your GPS position...');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const latlng = [pos.coords.latitude, pos.coords.longitude];
+          if (userLocationMarker) userLocationMarker.remove();
+          userLocationMarker = L.circleMarker(latlng, {
+            radius: 8,
+            color: '#FFFFFF',
+            weight: 3,
+            fillColor: '#2563EB',
+            fillOpacity: 1
+          }).addTo(mapInstance).bindPopup('You are here');
+          mapInstance.setView(latlng, 16, { animate: true });
+        },
+        () => {
+          showToast('Location access denied. Showing Taipei route.');
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+    }
+
+    // ============================================================
+    // RENDERING: HEADER, TIMELINE, FLASHCARDS, BUDGET
+    // ============================================================
+    function renderHeader(schedule) {
+      document.getElementById('headerZone').textContent = program.zone;
+      document.getElementById('headerTitle').textContent = program.title;
+      document.getElementById('lastVerifiedText').textContent = program.lastVerified;
+      document.getElementById('startTimeInput').value = state.startTime;
+
+      // Currency buttons
+      ['NTD', 'USD', 'EUR'].forEach(c => {
+        const btn = document.getElementById(`curr-${c}`);
+        if (c === state.currency) {
+          btn.className = 'px-2 py-1 rounded bg-white text-brand-blue shadow-xs';
+        } else {
+          btn.className = 'px-2 py-1 rounded hover:text-brand-blue';
+        }
+      });
+
+      // Plan B Switch visuals
+      const toggle = document.getElementById('planBToggle');
+      const pill = document.getElementById('planBPill');
+      const knob = document.getElementById('planBKnob');
+      const icon = document.getElementById('planBIcon');
+      const label = document.getElementById('planBLabel');
+
+      toggle.setAttribute('aria-checked', String(state.planB));
+      if (state.planB) {
+        toggle.className = 'flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50 transition text-xs font-bold';
+        pill.className = 'w-8 h-[18px] rounded-full bg-amber-500 p-0.5 flex items-center transition-colors';
+        knob.className = 'w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform translate-x-3.5';
+        icon.textContent = '☔';
+        label.textContent = 'Rainy / Plan B';
+        label.className = 'text-amber-900';
+      } else {
+        toggle.className = 'flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-brand-border bg-white hover:bg-slate-50 transition text-xs font-bold';
+        pill.className = 'w-8 h-[18px] rounded-full bg-slate-200 p-0.5 flex items-center transition-colors';
+        knob.className = 'w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform';
+        icon.textContent = '☀️';
+        label.textContent = 'Normal Route';
+        label.className = 'text-brand-dark';
+      }
+
+      // Progress bar
+      const doneCount = state.completedStops.length;
+      const total = schedule.stops.length;
+      const pct = total ? Math.round((doneCount / total) * 100) : 0;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+      document.getElementById('progressText').textContent = `${doneCount} / ${total} stops`;
+
+      // Conflict indicator pill
+      const conflictPill = document.getElementById('conflictPill');
+      if (schedule.conflicts.length > 0) {
+        conflictPill.textContent = `${schedule.conflicts.length} time alert${schedule.conflicts.length > 1 ? 's' : ''}`;
+        conflictPill.classList.remove('hidden');
+      } else {
+        conflictPill.classList.add('hidden');
+      }
+    }
+
+    function renderTimeline(schedule) {
+      const planBBanner = document.getElementById('planBBanner');
+      planBBanner.classList.toggle('hidden', !state.planB);
+
+      const alertBanner = document.getElementById('scheduleAlertBanner');
+      const alertList = document.getElementById('scheduleAlertList');
+      if (schedule.conflicts.length > 0) {
+        document.getElementById('alertStartTime').textContent = state.startTime;
+        alertList.innerHTML = schedule.conflicts.map(c => `<li>${c}</li>`).join('');
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+
+      const nextActive = schedule.stops.find(s => !state.completedStops.includes(s.id));
+      const container = document.getElementById('timelineContainer');
+
+      container.innerHTML = schedule.stops.map((stop, idx) => {
+        const isDone = state.completedStops.includes(stop.id);
+        const isActive = nextActive && nextActive.id === stop.id;
+
+        // Transit connector between previous stop and this stop
+        const transitHtml = stop.transitFromPrev ? `
+          <div class="relative pl-5 py-2">
+            <div class="absolute left-[18px] top-0 bottom-0 w-0.5 ${stop.transitFromPrev.mode === 'Walk' ? 'bg-slate-300' : 'border-l-2 border-dashed border-brand-blue/50'}"></div>
+            <div class="ml-4 bg-slate-100/90 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs space-y-1">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="font-extrabold text-brand-blue flex items-center gap-1.5">
+                  <span>${stop.transitFromPrev.mode === 'MRT' ? '🚇' : '🚶'}</span>
+                  <span>${stop.transitFromPrev.line}</span>
+                  ${stop.transitFromPrev.exit ? `<span class="px-1.5 py-0.5 rounded bg-brand-blue text-white text-[10px]">${stop.transitFromPrev.exit}</span>` : ''}
+                </span>
+                <span class="font-bold text-brand-slate">${stop.transitFromPrev.durationMin} min • ${stop.transitFromPrev.distanceText}</span>
+              </div>
+              <p class="text-[11px] text-brand-slate leading-relaxed">${stop.transitFromPrev.instruction}</p>
+              ${stop.flashcards && stop.flashcards.find(f => f.category === 'place') ? `
+                <button onclick="openFlashcardById('${stop.flashcards.find(f => f.category === 'place').id}')" class="text-[11px] font-bold text-brand-red hover:underline">
+                  🚕 Too tired or raining? Show Taxi Card →
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        ` : '';
+
+        const badgesHtml = (stop.badges || []).map(b => {
+          const colors = {
+            danger: 'bg-red-50 text-brand-red border-red-200',
+            warning: 'bg-amber-50 text-amber-800 border-amber-200',
+            success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            info: 'bg-blue-50 text-brand-blue border-blue-200',
+            neutral: 'bg-slate-100 text-brand-slate border-slate-200'
+          };
+          return `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${colors[b.type] || colors.neutral}">${b.label}</span>`;
+        }).join('');
+
+        const stopCost = (stop.costs || []).reduce((sum, c) => sum + c.ntd, 0);
+        const primaryFlashcard = stop.flashcards && stop.flashcards[0];
+
+        return `
+          ${transitHtml}
+          <article id="card-${stop.id}" class="bg-white rounded-2xl border ${isActive ? 'border-brand-red ring-2 ring-brand-red/15 shadow-md' : 'border-brand-border shadow-xs'} ${isDone ? 'opacity-70' : ''} p-4 sm:p-5 space-y-3 transition">
+
+            <!-- Card Top Row -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-start gap-3 min-w-0">
+                <button onclick="toggleStopDone('${stop.id}')" title="Mark step completed" class="w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-xs shrink-0 transition ${isDone ? 'bg-emerald-500 text-white' : (isActive ? 'bg-brand-red text-white' : 'bg-brand-blue text-white')}">
+                  ${isDone ? '✓' : stop.number}
+                </button>
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-extrabold ${isActive ? 'text-brand-red' : 'text-brand-blue'}">${stop.arrivalTime} – ${stop.departureTime}</span>
+                    <span class="text-[11px] font-semibold text-brand-slate">(${stop.durationMin} min)</span>
+                    ${isActive ? '<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-red-50 text-brand-red">Next Up</span>' : ''}
+                    ${stop.isSwapped ? `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">☔ ${stop.badge || 'Plan B'}</span>` : ''}
+                  </div>
+                  <h3 class="text-base font-extrabold text-brand-dark mt-0.5 ${isDone ? 'line-through' : ''}">${stop.name}</h3>
+                  <p class="font-tc text-xs font-semibold text-brand-slate">${stop.tcName}</p>
+                </div>
+              </div>
+
+              <button onclick="toggleStopDone('${stop.id}')" class="px-2.5 py-1 rounded-lg border text-[11px] font-bold shrink-0 transition ${isDone ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-brand-border bg-slate-50 text-brand-slate hover:bg-slate-100'}">
+                ${isDone ? 'Done ✓' : 'Mark Done'}
+              </button>
+            </div>
+
+            <!-- Alerts if opening conflict or Sunday closed -->
+            ${stop.alertMsg ? `
+              <div class="bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-[11px] font-bold text-red-800">
+                ⚠️ ${stop.alertMsg}
+              </div>
+            ` : ''}
+            ${stop.isClosedToday && stop.closedNote ? `
+              <div class="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-[11px] font-bold text-amber-900">
+                📅 Today Notice: ${stop.closedNote}
+              </div>
+            ` : ''}
+
+            <!-- Badges -->
+            <div class="flex flex-wrap gap-1.5">
+              ${badgesHtml}
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-brand-dark border border-slate-200">
+                Est. ${formatMoney(stopCost)}
+              </span>
+            </div>
+
+            <!-- Description & Field Tips -->
+            <p class="text-xs sm:text-sm text-brand-slate leading-relaxed">${stop.summary}</p>
+            ${stop.executionTips && stop.executionTips.length ? `
+              <ul class="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-1.5 text-xs text-brand-dark">
+                ${stop.executionTips.map(t => `<li class="flex items-start gap-2"><span class="text-brand-red font-extrabold">•</span><span>${t}</span></li>`).join('')}
+              </ul>
+            ` : ''}
+
+            <!-- Action Bar -->
+            <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                ${primaryFlashcard ? `
+                  <button onclick="openFlashcardById('${primaryFlashcard.id}')" class="px-3 py-1.5 rounded-xl bg-brand-red hover:bg-brand-redHover text-white text-[11px] font-extrabold flex items-center gap-1.5 shadow-xs transition">
+                    <span class="font-tc">文</span>
+                    <span>Show Flashcard${stop.flashcards.length > 1 ? ` (${stop.flashcards.length})` : ''}</span>
+                  </button>
+                ` : ''}
+                <a href="https://www.google.com/maps/search/?api=1&query=${stop.entryCoords}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-xl bg-brand-blue hover:bg-brand-blueHover text-white text-[11px] font-bold transition">
+                  Google Maps ↗
+                </a>
+                <button onclick="focusStopOnMap('${stop.id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-brand-dark text-[11px] font-bold transition">
+                  Pin on Map
+                </button>
+              </div>
+              <button onclick="openReportModal('${stop.name.replace(/'/g, "\\'")}')" class="text-[11px] font-semibold text-brand-muted hover:text-brand-red transition">
+                Report issue
+              </button>
+            </div>
+
+            ${stop.flashcards && stop.flashcards.length > 1 ? `
+              <div class="flex flex-wrap gap-1.5 pt-1">
+                ${stop.flashcards.map(fc => `
+                  <button onclick="openFlashcardById('${fc.id}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-red-50/70 hover:bg-red-100 text-brand-red border border-red-100 transition">
+                    💬 ${fc.title}
+                  </button>
+                `).join('')}
+              </div>
+            ` : ''}
+          </article>
+        `;
+      }).join('');
+    }
+
+    function getAllFlashcards() {
+      const stopCards = [];
+      program.stops.forEach(rawStop => {
+        const stop = getEffectiveStop(rawStop);
+        (stop.flashcards || []).forEach(fc => {
+          stopCards.push({ ...fc, stopLabel: `Stop ${stop.number}: ${stop.name}` });
+        });
+      });
+      const globalCards = (program.globalPhrases || []).map(p => ({ ...p, stopLabel: 'Universal Field Phrase' }));
+      return [...stopCards, ...globalCards];
+    }
+
+    function renderFlashcardsTab() {
+      const all = getAllFlashcards();
+      const filtered = state.flashcardFilter === 'all'
+        ? all
+        : all.filter(c => c.category === state.flashcardFilter);
+
+      // Update filter button styles
+      document.querySelectorAll('.fc-filter-btn').forEach(btn => {
+        const active = btn.getAttribute('data-fc-filter') === state.flashcardFilter;
+        btn.className = `fc-filter-btn px-3 py-1.5 rounded-full text-xs font-bold transition ${active ? 'bg-brand-blue text-white' : 'bg-slate-100 text-brand-slate hover:bg-slate-200'}`;
+      });
+
+      const container = document.getElementById('flashcardsList');
+      container.innerHTML = filtered.map(fc => `
+        <button onclick="openFlashcardById('${fc.id}')" class="bg-white rounded-2xl border border-brand-border hover:border-brand-blue p-4 text-left space-y-2 shadow-xs transition group">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-brand-red">${fc.stopLabel}</span>
+            ${fc.expectedNtd ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-900">${formatMoney(fc.expectedNtd)}</span>` : ''}
+          </div>
+          <p class="text-xs font-extrabold text-brand-dark group-hover:text-brand-blue">${fc.title}</p>
+          <p class="font-tc text-xl font-black text-brand-blue leading-snug">${fc.tc}</p>
+          <p class="text-[11px] font-mono text-brand-slate truncate">${fc.pinyin}</p>
+        </button>
+      `).join('');
+    }
+
+    function renderBudgetTab(schedule) {
+      let totalNtd = 0;
+      let cashNtd = 0;
+      let cardNtd = 0;
+
+      const rowsHtml = schedule.stops.map(stop => {
+        const costs = stop.costs || [];
+        const stopSum = costs.reduce((s, c) => s + c.ntd, 0);
+        costs.forEach(c => {
+          totalNtd += c.ntd;
+          if (c.payment.toLowerCase().includes('cash')) cashNtd += c.ntd;
+          else cardNtd += c.ntd;
+        });
+
+        const details = costs.length
+          ? costs.map(c => `${c.label} (${c.payment})`).join(' + ')
+          : 'Free';
+
+        return `
+          <div class="py-2.5 flex items-start justify-between gap-3">
+            <div>
+              <span class="font-bold text-brand-dark block">${stop.number}. ${stop.name}</span>
+              <span class="text-[11px] text-brand-slate">${details}</span>
+            </div>
+            <span class="font-extrabold text-brand-blue shrink-0">${formatMoney(stopSum)}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('budgetTotalDisplay').textContent = formatMoney(totalNtd);
+      document.getElementById('budgetModeNote').textContent = state.planB ? 'Rainy / Plan B route' : 'Normal route';
+      document.getElementById('budgetCashDisplay').textContent = formatMoney(cashNtd);
+      document.getElementById('budgetCardDisplay').textContent = formatMoney(cardNtd);
+      document.getElementById('budgetBreakdownList').innerHTML = rowsHtml;
+
+      const cashPct = totalNtd > 0 ? Math.round((cashNtd / totalNtd) * 100) : 50;
+      document.getElementById('cashRatioBar').style.width = `${cashPct}%`;
+      document.getElementById('cardRatioBar').style.width = `${100 - cashPct}%`;
+
+      // Checklist
+      const checklist = program.prepChecklist || [];
+      document.getElementById('prepCountBadge').textContent = `${state.checkedPrep.length} / ${checklist.length}`;
+      document.getElementById('prepChecklistContainer').innerHTML = checklist.map(item => {
+        const checked = state.checkedPrep.includes(item.id);
+        return `
+          <label class="flex items-start gap-3 p-3 rounded-xl border ${checked ? 'border-emerald-200 bg-emerald-50/50' : 'border-brand-border bg-slate-50/50'} cursor-pointer transition">
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange="togglePrepItem('${item.id}')" class="mt-0.5 w-4 h-4 accent-brand-blue rounded">
+            <div class="text-xs">
+              <span class="font-extrabold text-brand-dark block ${checked ? 'line-through text-brand-slate' : ''}">${item.title}</span>
+              <span class="text-brand-slate leading-relaxed">${item.detail}</span>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      // Curator
+      document.getElementById('curatorName').textContent = program.curator.name;
+      document.getElementById('curatorRole').textContent = `${program.curator.role} • Verified ${program.lastVerified}`;
+    }
+
+    // ============================================================
+    // INTERACTIONS & MODALS
+    // ============================================================
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      saveState();
+
+      const isDesktop = window.innerWidth >= 1024;
+      // On desktop, 'map' lives in the right sticky column, so keep 'route' open on the left
+      const effectiveLeftTab = (isDesktop && tabName === 'map') ? 'route' : tabName;
+
+      ['route', 'map', 'flashcards', 'budget'].forEach(t => {
+        const panel = document.getElementById(`panel-${t}`);
+        if (panel) panel.classList.toggle('hidden', t !== effectiveLeftTab);
+      });
+
+      // Desktop tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        const active = btn.getAttribute('data-tab-btn') === effectiveLeftTab;
+        btn.className = `tab-btn flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider transition ${active ? 'bg-brand-blue text-white shadow-xs' : 'text-brand-slate hover:text-brand-blue'}`;
+      });
+
+      // Mobile bottom bar
+      document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+        const active = btn.getAttribute('data-mobile-tab') === tabName;
+        btn.className = `mobile-tab-btn flex flex-col items-center justify-center py-1.5 rounded-xl transition ${active ? 'text-brand-blue bg-blue-50/90 font-extrabold' : 'text-brand-slate font-bold'}`;
+      });
+
+      if (tabName === 'map' || isDesktop) {
+        mountMapToViewport();
+        setTimeout(() => {
+          if (mapInstance) mapInstance.invalidateSize();
+        }, 100);
+      }
+    }
+
+    function onStartTimeChange(val) {
+      if (!val) return;
+      state.startTime = val;
+      saveState();
+      renderAll();
+    }
+
+    function setStartNow() {
+      const now = new Date();
+      const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      state.startTime = hhmm;
+      saveState();
+      renderAll();
+      showToast(`Timeline shifted to start now (${hhmm})`);
+    }
+
+    function resetIdealStart() {
+      state.startTime = program.recommendedStart || '14:30';
+      saveState();
+      renderAll();
+      showToast(`Reset to ideal start (${state.startTime})`);
+    }
+
+    function togglePlanB() {
+      state.planB = !state.planB;
+      saveState();
+      renderAll();
+      showToast(state.planB ? 'Rainy Day / Plan B route activated' : 'Switched back to Normal Route');
+    }
+
+    function toggleStopDone(stopId) {
+      if (state.completedStops.includes(stopId)) {
+        state.completedStops = state.completedStops.filter(id => id !== stopId);
+      } else {
+        state.completedStops.push(stopId);
+      }
+      saveState();
+      renderAll();
+    }
+
+    function togglePrepItem(id) {
+      if (state.checkedPrep.includes(id)) {
+        state.checkedPrep = state.checkedPrep.filter(x => x !== id);
+      } else {
+        state.checkedPrep.push(id);
+      }
+      saveState();
+      renderAll();
+    }
+
+    function setFlashcardFilter(filter) {
+      state.flashcardFilter = filter;
+      saveState();
+      renderFlashcardsTab();
+    }
+
+    function resetProgress() {
+      state.completedStops = [];
+      state.checkedPrep = [];
+      state.planB = false;
+      state.startTime = program.recommendedStart || '14:30';
+      saveState();
+      renderAll();
+      showToast('Guide progress reset');
+    }
+
+    // Flashcard Full-Screen Modal
+    let activeModalCard = null;
+    let activeModifiers = [];
+
+    function openFlashcardById(fcId) {
+      const card = getAllFlashcards().find(c => c.id === fcId);
+      if (!card) return;
+      activeModalCard = card;
+      activeModifiers = [];
+
+      document.getElementById('fcModalTitle').textContent = card.title;
+      document.getElementById('fcModalTc').textContent = card.tc;
+      document.getElementById('fcModalPinyin').textContent = card.pinyin;
+      document.getElementById('fcModalEnglish').textContent = card.english;
+      document.getElementById('fcModalContext').textContent = `💡 Field Tip: ${card.context || 'Hold screen steady toward driver or vendor.'}`;
+
+      const priceWrap = document.getElementById('fcModalPriceWrap');
+      if (card.expectedNtd) {
+        document.getElementById('fcModalPrice').textContent = formatMoney(card.expectedNtd);
+        priceWrap.classList.remove('hidden');
+      } else {
+        priceWrap.classList.add('hidden');
+      }
+
+      document.getElementById('fcModifiersSection').classList.toggle('hidden', !card.supportsModifiers);
+      renderModalModifiers();
+
+      document.getElementById('flashcardModal').classList.remove('hidden');
+    }
+
+    function toggleModalModifier(tcText, enLabel) {
+      const idx = activeModifiers.findIndex(m => m.tc === tcText);
+      if (idx >= 0) activeModifiers.splice(idx, 1);
+      else activeModifiers.push({ tc: tcText, en: enLabel });
+      renderModalModifiers();
+    }
+
+    function renderModalModifiers() {
+      const wrap = document.getElementById('fcModalModifiersActive');
+      wrap.innerHTML = activeModifiers.map(m => `
+        <span class="font-tc px-3 py-1 rounded-xl bg-brand-red text-white text-lg sm:text-2xl font-black">+ ${m.tc}</span>
+      `).join('');
+
+      document.querySelectorAll('.mod-pill').forEach(btn => {
+        const mod = btn.getAttribute('data-mod');
+        const on = activeModifiers.some(m => m.tc === mod);
+        btn.className = `mod-pill px-3 py-1.5 rounded-xl border text-xs font-bold transition ${on ? 'border-brand-red bg-red-50 text-brand-red' : 'border-brand-border text-brand-dark hover:border-brand-blue'}`;
+      });
+    }
+
+    function closeFlashcardModal() {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      document.getElementById('flashcardModal').classList.add('hidden');
+    }
+
+    function speakFlashcard() {
+      if (!activeModalCard) return;
+      if (!('speechSynthesis' in window)) {
+        showToast('Audio playback not supported on this browser.');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const extra = activeModifiers.map(m => m.tc).join('，');
+      const utter = new SpeechSynthesisUtterance(extra ? `${activeModalCard.tc}，${extra}` : activeModalCard.tc);
+      utter.lang = 'zh-TW';
+      utter.rate = 0.85;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // Report Modal
+    function openReportModal(stopName) {
+      document.getElementById('reportStopName').textContent = `Spot: ${stopName}`;
+      document.getElementById('reportModal').classList.remove('hidden');
+    }
+    function closeReportModal() {
+      document.getElementById('reportModal').classList.add('hidden');
+    }
+    function submitReport() {
+      closeReportModal();
+      showToast('Thank you! Field verification team notified.');
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.add('hidden'), 2600);
+    }
+
+    // ============================================================
+    // MASTER RENDER & INIT
+    // ============================================================
+    function renderAll() {
+      const schedule = computeSchedule();
+      renderHeader(schedule);
+      renderTimeline(schedule);
+      renderFlashcardsTab();
+      renderBudgetTab(schedule);
+      renderMap(schedule.stops);
+    }
+
+    window.addEventListener('resize', () => {
+      switchTab(state.activeTab);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      mountMapToViewport();
+      renderAll();
+      switchTab(state.activeTab);
+    });
+  </script>
+</body>
+</html>
