@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taiwanderer — Interactive Concept & Prototype Demo</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="../prototypes/data/programs.js"></script>
+</head>
+<body>
+  <div class="ambient-bg" aria-hidden="true"></div>
+
+  <header class="presenter-header">
+    <div class="brand-pill">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span>TAIWANDERER</span>
+      <span class="font-tc" style="font-weight: 500; color: #64748b; font-size: 0.85rem;">臺灣探索者</span>
+    </div>
+    <div class="header-controls">
+      <span id="slideCounter" class="slide-counter">01 / 05</span>
+      <button id="fullscreenBtn" class="icon-btn" type="button" title="Toggle Fullscreen (F)">Fullscreen</button>
+    </div>
+  </header>
+
+  <div class="progress-track" aria-hidden="true">
+    <div id="progressFill" class="progress-fill"></div>
+  </div>
+
+  <main class="deck-stage">
+    <!-- SLIDE 1: HOOK & PROBLEM -->
+    <section class="slide is-active" data-slide="0" aria-label="The Taiwan Travel Friction">
+      <div class="slide-inner slide-1-grid">
+        <div class="anim-item">
+          <span class="eyebrow">01 • The Friction</span>
+          <h1 class="hero-title">
+            Why does a 1-day trip require <span class="gradient-text">6 apps?</span>
+          </h1>
+          <p class="lead-copy">
+            Independent travelers in Taipei lose hours every day switching between maps, transit calculators, translation tools, and scattered blogs—only to get stuck at cash-only street-food stalls.
+          </p>
+        </div>
+        <div class="chaos-stack">
+          <article class="chaos-card anim-item">
+            <span class="chaos-tag">Navigation</span>
+            <h3 class="chaos-title">Google Maps</h3>
+            <p class="chaos-desc">Wrong alley entrances &amp; confusing MRT exits.</p>
+          </article>
+          <article class="chaos-card anim-item">
+            <span class="chaos-tag">Language</span>
+            <h3 class="chaos-title">Google Translate</h3>
+            <p class="chaos-desc">Awkward menus &amp; zero vendor context.</p>
+          </article>
+          <article class="chaos-card anim-item">
+            <span class="chaos-tag">Transit</span>
+            <h3 class="chaos-title">MRT / Bus Apps</h3>
+            <p class="chaos-desc">Disconnected from walking &amp; opening hours.</p>
+          </article>
+          <article class="chaos-card anim-item">
+            <span class="chaos-tag">Discovery</span>
+            <h3 class="chaos-title">Travel Blogs</h3>
+            <p class="chaos-desc">Outdated opening times &amp; closed stalls.</p>
+          </article>
+          <article class="chaos-card chaos-card--wide anim-item">
+            <span class="chaos-tag" style="color: #fe0000;">Result</span>
+            <h3 class="chaos-title">Multi-Source Fatigue</h3>
+            <p class="chaos-desc" style="color: #991b1b;">High cognitive load instead of enjoying Taiwan.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: THE SOLUTION -->
+    <section class="slide" data-slide="1" aria-label="The Taiwanderer Solution">
+      <div class="slide-inner">
+        <div class="anim-item">
+          <span class="eyebrow eyebrow--blue">02 • The Concept</span>
+          <h2 class="hero-title" style="max-width: 820px;">
+            Turnkey field guides built for <span class="gradient-text">zero-friction execution.</span>
+          </h2>
+          <p class="lead-copy">
+            Taiwanderer replaces fragmented planning with mobile-first, themed half-day routes designed to be used live on the street.
+          </p>
+        </div>
+        <div class="pillars-grid">
+          <article class="pillar-card anim-item">
+            <div class="pillar-num">01</div>
+            <h3>Curated Half-Day Routes</h3>
+            <p>3 field-tested Taipei routes with realistic walking times, MRT exits, and exact entrance pins.</p>
+          </article>
+          <article class="pillar-card anim-item">
+            <div class="pillar-num">02</div>
+            <h3>English-First Clarity</h3>
+            <p>Built for international travelers, with instant Traditional Chinese flashcards when interacting locally.</p>
+          </article>
+          <article class="pillar-card anim-item">
+            <div class="pillar-num">03</div>
+            <h3>No App Install Needed</h3>
+            <p>Runs directly in any mobile browser—open the link, follow the timeline, and tap to show cards.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: ADAPTIVE FIELD ENGINE -->
+    <section class="slide" data-slide="2" aria-label="Adaptive Field Engine">
+      <div class="slide-inner">
+        <div class="anim-item">
+          <span class="eyebrow">03 • How It Works — Dynamic Logic</span>
+          <h2 class="hero-title" style="font-size: clamp(1.9rem, 3.3vw, 2.9rem); margin: 10px 0;">
+            One route, <span class="gradient-text">adapting in real time</span>
+          </h2>
+        </div>
+        <div class="engine-layout">
+          <div class="surface-card engine-controls anim-item">
+            <div class="control-group">
+              <label>1. Start Time (Conflict Check)</label>
+              <div class="segmented" role="group" aria-label="Start time presets">
+                <button class="seg-btn is-selected" type="button" data-start="14:30">14:30 (Ideal)</button>
+                <button class="seg-btn" type="button" data-start="18:30">18:30 (Late)</button>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>2. Weather Adaptation</label>
+              <button id="rainyToggle" class="toggle-btn" type="button" aria-pressed="false">
+                <span id="rainyLabel">☀️ Normal Route</span>
+                <span style="font-size: 0.75rem; color: #64748b;">Click to switch</span>
+              </button>
+            </div>
+            <div class="control-group">
+              <label>3. Live Budget Currency</label>
+              <div class="segmented" role="group" aria-label="Currency selector">
+                <button class="seg-btn is-selected" type="button" data-curr="NTD">NTD</button>
+                <button class="seg-btn" type="button" data-curr="USD">USD</button>
+                <button class="seg-btn" type="button" data-curr="EUR">EUR</button>
+              </div>
+            </div>
+            <div id="conflictAlert" class="conflict-alert">
+              <strong>Schedule Conflict Detected:</strong> Dihua St shops close at 18:00. Taiwanderer warns the traveler before they leave.
+            </div>
+          </div>
+
+          <div id="timelinePreview" class="surface-card timeline-preview anim-item">
+            <!-- Populated dynamically from window.TAIWANDERER_PROGRAMS.heritage -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: POINT-AND-SHOW MANDARIN FLASHCARDS -->
+    <section class="slide" data-slide="3" aria-label="Point-and-Show Mandarin Flashcards">
+      <div class="slide-inner">
+        <div class="anim-item">
+          <span class="eyebrow eyebrow--blue">04 • How It Works — Language Bridge</span>
+          <h2 class="hero-title" style="font-size: clamp(1.9rem, 3.4vw, 3rem); margin: 10px 0;">
+            Point-and-Show <span class="gradient-text">Mandarin Flashcards</span>
+          </h2>
+          <p class="lead-copy" style="font-size: 1rem;">
+            No typing into a translator at a busy night-market stall. Click any card below to preview the full-screen phone view.
+          </p>
+        </div>
+        <div id="flashcardsGrid" class="flashcards-grid">
+          <!-- Populated dynamically from window.TAIWANDERER_PROGRAMS.heritage -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: LIVE PROTOTYPES -->
+    <section class="slide" data-slide="4" aria-label="Validated Prototypes">
+      <div class="slide-inner">
+        <div class="anim-item" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap;">
+          <div>
+            <span class="eyebrow">05 • Live Prototypes</span>
+            <h2 class="hero-title" style="font-size: clamp(1.7rem, 2.9vw, 2.5rem); margin: 8px 0 0;">
+              Explore what we built so far
+            </h2>
+          </div>
+          <a id="openProtoExternal" href="../prototypes/index.html" target="_blank" rel="noopener noreferrer" class="icon-btn" style="text-decoration: none;">
+            Open in New Tab ↗
+          </a>
+        </div>
+
+        <div class="proto-shell">
+          <aside class="surface-card proto-sidebar anim-item">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <button class="proto-tab is-active" type="button" data-proto="landing">
+                <strong>1. Discovery &amp; Catalog (index.html)</strong>
+                <span>Desktop-ready landing page presenting the 3 Taipei routes and value proposition.</span>
+              </button>
+              <button class="proto-tab" type="button" data-proto="guide">
+                <strong>2. Live Field Guide (guide.html)</strong>
+                <span>Mobile-first execution app with interactive map, timeline, Plan B toggle, and flashcards.</span>
+              </button>
+            </div>
+            <div style="font-size: 0.78rem; color: #64748b; line-height: 1.45; border-top: 1px solid #e2e8f0; padding-top: 12px;">
+              You can scroll and click directly inside the preview frame on the right.
+            </div>
+          </aside>
+
+          <div class="proto-stage anim-item">
+            <div id="deviceFrame" class="device-frame">
+              <iframe id="protoIframe" title="Taiwanderer Live Prototype"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Flashcard Zoom Modal -->
+  <div id="fcModal" class="fc-modal" role="dialog" aria-modal="true" aria-labelledby="fcModalTitle">
+    <div class="fc-modal-card">
+      <span id="fcModalTitle" style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #fe0000;"></span>
+      <div id="fcModalTc" class="fc-modal-tc font-tc"></div>
+      <div id="fcModalPinyin" style="font-size: 1.05rem; font-weight: 700; color: #475569;"></div>
+      <p id="fcModalEn" style="font-size: 1.15rem; font-weight: 600; margin: 16px 0 8px;"></p>
+      <p id="fcModalCtx" style="font-size: 0.9rem; color: #64748b; margin-bottom: 24px;"></p>
+      <button id="fcModalClose" class="icon-btn" type="button" style="background: #000095; color: #fff; border-color: #000095; padding: 10px 22px;">Close Card</button>
+    </div>
+  </div>
+
+  <footer class="presenter-footer">
+    <div class="nav-dots" role="tablist" aria-label="Slide navigation">
+      <button class="dot-btn is-active" type="button" data-goto="0" aria-label="Slide 1"></button>
+      <button class="dot-btn" type="button" data-goto="1" aria-label="Slide 2"></button>
+      <button class="dot-btn" type="button" data-goto="2" aria-label="Slide 3"></button>
+      <button class="dot-btn" type="button" data-goto="3" aria-label="Slide 4"></button>
+      <button class="dot-btn" type="button" data-goto="4" aria-label="Slide 5"></button>
+    </div>
+    <span class="hint-keys">Use ← → or Space to navigate • F for Fullscreen</span>
+    <div style="display: flex; gap: 8px;">
+      <button id="prevBtn" class="icon-btn" type="button">← Prev</button>
+      <button id="nextBtn" class="icon-btn" type="button">Next →</button>
+    </div>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
