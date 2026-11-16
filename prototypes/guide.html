@@ -195,7 +195,7 @@
             <span class="text-lg leading-none mt-0.5">☔</span>
             <div class="text-xs space-y-0.5">
               <p class="font-extrabold text-amber-900">Rainy Day / Plan B Active</p>
-              <p class="text-amber-800 leading-relaxed">Outdoor pier & open-air night market lanes are swapped for sheltered Qilou arcades, indoor heritage rooms, and seated legacy diners. Transit & budget updated automatically.</p>
+              <p id="planBBannerText" class="text-amber-800 leading-relaxed">Outdoor stops are swapped for sheltered indoor alternatives. Transit & budget updated automatically.</p>
             </div>
           </div>
 
@@ -205,8 +205,8 @@
             <div class="text-xs space-y-1 flex-1">
               <p class="font-extrabold text-red-900">Schedule Conflict Detected for <span id="alertStartTime"></span> Start</p>
               <ul id="scheduleAlertList" class="text-red-800 list-disc pl-4 space-y-0.5"></ul>
-              <button onclick="resetIdealStart()" class="mt-1 inline-flex items-center font-extrabold text-brand-red underline">
-                Reset to ideal 14:30 start →
+              <button id="resetIdealBtn" onclick="resetIdealStart()" class="mt-1 inline-flex items-center font-extrabold text-brand-red underline">
+                Reset to ideal start →
               </button>
             </div>
           </div>
@@ -275,7 +275,7 @@
                 <div id="cashRatioBar" class="h-full bg-amber-500 transition-all duration-300" style="width: 70%"></div>
                 <div id="cardRatioBar" class="h-full bg-brand-blue transition-all duration-300" style="width: 30%"></div>
               </div>
-              <p class="text-[11px] text-brand-slate">Withdraw small NTD bills before arriving at Dihua St / Ningxia Night Market.</p>
+              <p id="budgetTipText" class="text-[11px] text-brand-slate">Withdraw small NTD bills before starting your route.</p>
             </div>
 
             <!-- Step-by-step Cost Breakdown -->
@@ -786,10 +786,22 @@
     // RENDERING: HEADER, TIMELINE, FLASHCARDS, BUDGET
     // ============================================================
     function renderHeader(schedule) {
+      document.title = `${program.title} — Taiwanderer Live Field Guide`;
       document.getElementById('headerZone').textContent = program.zone;
       document.getElementById('headerTitle').textContent = program.title;
       document.getElementById('lastVerifiedText').textContent = program.lastVerified;
       document.getElementById('startTimeInput').value = state.startTime;
+
+      const idealTime = program.recommendedStart || '14:30';
+      document.getElementById('idealBtn').textContent = `${idealTime} Ideal`;
+      document.getElementById('resetIdealBtn').textContent = `Reset to ideal ${idealTime} start →`;
+      document.getElementById('planBBannerText').textContent = program.planBSummary
+        || 'Outdoor stops are swapped for sheltered indoor alternatives. Transit & budget updated automatically.';
+      document.getElementById('mobileMapMeta').textContent = `${schedule.stops.length} stops • ${program.walkingDistance} • Tap to open full map`;
+      const budgetTipEl = document.getElementById('budgetTipText');
+      if (budgetTipEl) {
+        budgetTipEl.textContent = program.budgetTip || 'Withdraw small NTD bills before starting your route.';
+      }
 
       // Currency buttons
       ['NTD', 'USD', 'EUR'].forEach(c => {

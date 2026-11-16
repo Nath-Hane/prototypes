@@ -312,9 +312,15 @@
               </div>
             </div>
 
-            <button onclick="openProgramModal('heritage')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
-              View Itinerary
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="openProgramModal('heritage')" class="px-3.5 py-2.5 rounded-xl border border-brand-border bg-white hover:bg-slate-50 text-brand-blue font-bold text-xs uppercase tracking-wider transition">
+                Preview
+              </button>
+              <a href="guide.html?id=heritage" class="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm inline-flex items-center gap-1">
+                <span>Open Guide</span>
+                <span>→</span>
+              </a>
+            </div>
           </div>
         </div>
       </article>
@@ -378,9 +384,15 @@
               </div>
             </div>
 
-            <button onclick="openProgramModal('jiufen')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
-              View Itinerary
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="openProgramModal('jiufen')" class="px-3.5 py-2.5 rounded-xl border border-brand-border bg-white hover:bg-slate-50 text-brand-blue font-bold text-xs uppercase tracking-wider transition">
+                Preview
+              </button>
+              <a href="guide.html?id=jiufen" class="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm inline-flex items-center gap-1">
+                <span>Open Guide</span>
+                <span>→</span>
+              </a>
+            </div>
           </div>
         </div>
       </article>
@@ -444,9 +456,15 @@
               </div>
             </div>
 
-            <button onclick="openProgramModal('huashan')" class="px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm">
-              View Itinerary
-            </button>
+            <div class="flex items-center gap-2">
+              <button onclick="openProgramModal('huashan')" class="px-3.5 py-2.5 rounded-xl border border-brand-border bg-white hover:bg-slate-50 text-brand-blue font-bold text-xs uppercase tracking-wider transition">
+                Preview
+              </button>
+              <a href="guide.html?id=huashan" class="px-4 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-red text-white font-bold text-xs uppercase tracking-wider transition shadow-sm inline-flex items-center gap-1">
+                <span>Open Guide</span>
+                <span>→</span>
+              </a>
+            </div>
           </div>
         </div>
       </article>
@@ -629,39 +647,37 @@
       <div class="bg-slate-50 border-2 border-brand-blue/20 rounded-2xl p-5 space-y-3">
         <span class="text-[10px] font-bold text-brand-slate uppercase tracking-wider block">Integrated "Show-to-Local" Flashcard Sample</span>
         <div class="bg-white p-5 rounded-xl border border-brand-border shadow-xs text-center space-y-1">
-          <p class="font-tc text-3xl font-black text-brand-blue">迪化街一段</p>
-          <p class="text-xs text-brand-slate font-mono">Dadaocheng Dihua St, Sec 1</p>
-          <p class="text-sm font-bold text-brand-red pt-2">« 請帶我到這個地址 (Please take me to this address) »</p>
+          <p id="modalFlashcardTc" class="font-tc text-3xl font-black text-brand-blue">迪化街一段</p>
+          <p id="modalFlashcardPinyin" class="text-xs text-brand-slate font-mono">Dadaocheng Dihua St, Sec 1</p>
+          <p id="modalFlashcardPhrase" class="text-sm font-bold text-brand-red pt-2">« 請帶我到這個地址 (Please take me to this address) »</p>
         </div>
       </div>
 
       <!-- Minute-by-Minute Timeline -->
       <div class="space-y-3">
-        <h4 class="text-sm font-bold text-brand-blue uppercase tracking-wider">Chronological Timeline</h4>
-        <div class="space-y-3 border-l-2 border-brand-red/40 pl-4 text-xs">
+        <h4 class="text-sm font-bold text-brand-blue uppercase tracking-wider">Chronological Timeline Highlights</h4>
+        <div id="modalTimeline" class="space-y-3 border-l-2 border-brand-red/40 pl-4 text-xs">
           <div>
             <span class="font-bold text-brand-red">02:30 PM • Arrive at MRT Beimen (Exit 3)</span>
             <p class="text-brand-slate mt-0.5">5-minute walk to Dihua Street. Explore historic tea and Chinese medicine shops.</p>
           </div>
-          <div>
-            <span class="font-bold text-brand-red">04:00 PM • Traditional Oolong Tea Tasting</span>
-            <p class="text-brand-slate mt-0.5">Relax at Wang's Tea with roastery demonstration.</p>
-          </div>
-          <div>
-            <span class="font-bold text-brand-red">06:00 PM • Ningxia Night Market Safari</span>
-            <p class="text-brand-slate mt-0.5">Direct guide to 4 top street food stands with pre-filled Traditional Chinese order cards.</p>
-          </div>
         </div>
       </div>
 
-      <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+      <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
         <div>
           <span class="text-xs text-brand-slate block">Estimated Cost</span>
-          <span class="text-xl font-extrabold text-brand-blue">1,200 NTD (~$38 USD)</span>
+          <span id="modalCost" class="text-xl font-extrabold text-brand-blue">1,200 NTD (~$38 USD)</span>
         </div>
-        <button onclick="closeProgramModal()" class="px-6 py-3 rounded-xl bg-brand-red hover:bg-brand-redHover text-white font-bold text-xs uppercase tracking-wider transition">
-          Close Preview
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="closeProgramModal()" class="px-4 py-3 rounded-xl border border-brand-border hover:bg-slate-50 text-brand-slate font-bold text-xs uppercase tracking-wider transition">
+            Close
+          </button>
+          <a id="modalGuideLink" href="guide.html?id=heritage" class="px-6 py-3 rounded-xl bg-brand-red hover:bg-brand-redHover text-white font-bold text-xs uppercase tracking-wider transition shadow-md inline-flex items-center gap-1.5">
+            <span>Open Live Field Guide</span>
+            <span>→</span>
+          </a>
+        </div>
       </div>
 
     </div>
@@ -670,6 +686,7 @@
   <!-- ============================================================ -->
   <!-- 11. FILTERING & CURRENCY CONVERSION SCRIPT -->
   <!-- ============================================================ -->
+  <script src="data/programs.js"></script>
   <script>
     // Currency conversion rates
     const rates = {
@@ -744,21 +761,78 @@
       });
     }
 
+    function formatModalTime(hhmm, addMins) {
+      const [h, m] = hhmm.split(':').map(Number);
+      const total = h * 60 + m + addMins;
+      const hh = String(Math.floor((total % 1440) / 60)).padStart(2, '0');
+      const mm = String(total % 60).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
     // Interactive modal preview
     function openProgramModal(type) {
       const modal = document.getElementById('itineraryModal');
       const title = document.getElementById('modalTitle');
       const cat = document.getElementById('modalCategory');
+      const fcTc = document.getElementById('modalFlashcardTc');
+      const fcPinyin = document.getElementById('modalFlashcardPinyin');
+      const fcPhrase = document.getElementById('modalFlashcardPhrase');
+      const timeline = document.getElementById('modalTimeline');
+      const costEl = document.getElementById('modalCost');
+      const guideLink = document.getElementById('modalGuideLink');
 
-      if (type === 'heritage') {
-        title.textContent = "Heritage & Street Food Safari (Dadaocheng)";
-        cat.textContent = "Half-Day • Afternoon to Evening";
-      } else if (type === 'jiufen') {
-        title.textContent = "Misty Hills & Old Gold Trails (Jiufen & Shifen)";
-        cat.textContent = "Full-Day • 09:00 AM Departure";
+      const prog = window.TAIWANDERER_PROGRAMS && window.TAIWANDERER_PROGRAMS[type];
+      if (prog) {
+        title.textContent = `${prog.title} (${prog.subtitle})`;
+        cat.textContent = `${prog.durationLabel} • Start ${prog.recommendedStart} • ${prog.stops.length} Stops`;
+
+        const sampleStop = prog.stops[0];
+        const sampleCard = (sampleStop.flashcards && sampleStop.flashcards[0]) || prog.essentialPhrases[0];
+        if (sampleCard) {
+          fcTc.textContent = sampleStop.tcName || sampleCard.tc;
+          fcPinyin.textContent = sampleCard.pinyin || sampleStop.addressTc;
+          fcPhrase.textContent = `« ${sampleCard.tc} (${sampleCard.english}) »`;
+        }
+
+        // Show 3 key stops from the route
+        const previewIndices = prog.stops.length >= 3
+          ? [0, Math.floor(prog.stops.length / 2), prog.stops.length - 1]
+          : prog.stops.map((_, i) => i);
+
+        let elapsed = 0;
+        const stopTimes = prog.stops.map(s => {
+          const transit = s.transitFromPrev ? s.transitFromPrev.durationMin : 0;
+          elapsed += transit;
+          const arrival = formatModalTime(prog.recommendedStart, elapsed);
+          elapsed += s.durationMin;
+          return arrival;
+        });
+
+        timeline.innerHTML = previewIndices.map(idx => {
+          const stop = prog.stops[idx];
+          return `
+            <div>
+              <span class="font-bold text-brand-red">${stopTimes[idx]} • ${stop.name}</span>
+              <p class="text-brand-slate mt-0.5">${stop.summary}</p>
+            </div>
+          `;
+        }).join('');
+
+        const baseNtd = type === 'heritage'
+          ? 1200
+          : prog.stops.reduce((sum, s) => sum + (s.costs || []).reduce((a, c) => a + c.ntd, 0), 0);
+        const usd = Math.round(baseNtd * rates.USD.rate);
+        if (currentCurrency === 'EUR') {
+          costEl.textContent = `€ ${Math.round(baseNtd * rates.EUR.rate)} (${baseNtd.toLocaleString('en-US')} NTD)`;
+        } else if (currentCurrency === 'USD') {
+          costEl.textContent = `$ ${usd} (${baseNtd.toLocaleString('en-US')} NTD)`;
+        } else {
+          costEl.textContent = `${baseNtd.toLocaleString('en-US')} NTD (~$${usd} USD)`;
+        }
+
+        guideLink.href = `guide.html?id=${encodeURIComponent(prog.id)}`;
       } else {
-        title.textContent = "Creative Hubs & Sunset Heights (Huashan & Xiangshan)";
-        cat.textContent = "Half-Day • Golden Hour Window";
+        guideLink.href = `guide.html?id=${encodeURIComponent(type)}`;
       }
 
       modal.classList.remove('hidden');
@@ -767,6 +841,13 @@
     function closeProgramModal() {
       document.getElementById('itineraryModal').classList.add('hidden');
     }
+
+    document.getElementById('itineraryModal').addEventListener('click', (e) => {
+      if (e.target.id === 'itineraryModal') closeProgramModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeProgramModal();
+    });
   </script>
 </body>
 </html>
